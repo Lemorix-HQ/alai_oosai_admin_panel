@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useFormik } from "formik";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAdminReports, useUpdateReport, useDeleteReport } from "@/src/hooks/useReports";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/lib/utils";
@@ -30,8 +30,8 @@ export default function EditReportPage() {
 
   const formik = useFormik({
     initialValues: {
-      title: "",
-      description: "",
+      title: report?.title ?? "",
+      description: report?.description ?? "",
     },
     enableReinitialize: true,
     validate: (values) => {
@@ -58,18 +58,6 @@ export default function EditReportPage() {
       }
     },
   });
-
-  useEffect(() => {
-    if (report) {
-      formik.resetForm({
-        values: {
-          title: report.title ?? "",
-          description: report.description ?? "",
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [report]);
 
   async function handleDelete() {
     await deleteReport.mutateAsync(id);

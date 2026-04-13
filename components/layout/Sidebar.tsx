@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/src/actions/auth.actions";
+import type { JwtPayload } from "@/src/types";
 
-const navItems = [
+const baseNavItems = [
   { href: "/", icon: "dashboard", label: "Dashboard" },
   { href: "/events", icon: "event", label: "Events" },
   { href: "/announcements", icon: "campaign", label: "Announcements" },
@@ -12,8 +13,20 @@ const navItems = [
   { href: "/profile", icon: "person", label: "Profile" },
 ];
 
-export default function Sidebar() {
+const superAdminItem = {
+  href: "/global-dashboard",
+  icon: "public",
+  label: "Global Dashboard",
+};
+
+interface SidebarProps {
+  role: JwtPayload["role"];
+}
+
+export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
+  const navItems =
+    role === "super_admin" ? [...baseNavItems, superAdminItem] : baseNavItems;
 
   async function handleLogout() {
     localStorage.clear();

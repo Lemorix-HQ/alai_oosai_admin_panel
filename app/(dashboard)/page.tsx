@@ -1,30 +1,41 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { JwtPayload } from "@/src/types";
 import { getAdminEventsAction } from "@/src/actions/events.actions";
 import { getAdminAnnouncementsAction } from "@/src/actions/announcements.actions";
 import { getAdminReportsAction } from "@/src/actions/reports.actions";
+import { listVillagesAction } from "@/src/actions/villages.actions";
 
-async function getAdminName(): Promise<string> {
+async function getAdminPayload(): Promise<JwtPayload | null> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("admin_token")?.value;
-    if (!token) return "Admin";
-    const payload = jwtDecode<JwtPayload>(token);
-    return payload.name ?? "Admin";
+    if (!token) return null;
+    return jwtDecode<JwtPayload>(token);
   } catch {
-    return "Admin";
+    return null;
   }
 }
 
 export default async function DashboardPage() {
-  const [nameResult, eventsResult, announcementsResult, reportsResult] = await Promise.all([
-    getAdminName(),
+  const payload = await getAdminPayload();
+
+  // Super admin without a selected village must pick one (or create one) first.
+  if (payload?.role === "super_admin" && !payload.village_id) {
+    const villagesRes = await listVillagesAction();
+    const villages = villagesRes.data ?? [];
+    redirect(villages.length === 0 ? "/create-village" : "/select-village");
+  }
+
+  const [eventsResult, announcementsResult, reportsResult] = await Promise.all([
     getAdminEventsAction(),
     getAdminAnnouncementsAction(),
     getAdminReportsAction(),
   ]);
+
+  const nameResult = payload?.name ?? "Admin";
 
   const eventsCount = eventsResult.data?.length ?? 0;
   const announcementsCount = announcementsResult.data?.length ?? 0;

@@ -34,7 +34,6 @@ export default function EditEventPage() {
       ctaText: "",
       tags: "",
     },
-    enableReinitialize: true,
     validate: (values) => {
       const errors: Record<string, string> = {};
       if (!values.title) errors.title = "Title is required";
@@ -92,7 +91,7 @@ export default function EditEventPage() {
           conductorName: event.conductorName ?? "",
           type: event.type ?? "event",
           ctaText: event.ctaText ?? "",
-          tags: (event.tags ?? []).join(", "),
+          tags: [...new Set(event.tags ?? [])].join(", "),
         },
       });
     }

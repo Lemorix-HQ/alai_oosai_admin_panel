@@ -1,6 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import VillageDropdown from "./VillageDropdown";
+import type { JwtPayload, Village } from "@/src/types";
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -33,9 +35,18 @@ function getInitials(name: string): string {
 interface HeaderProps {
   adminName: string;
   villageName: string | null;
+  role: JwtPayload["role"];
+  currentVillageId: string | null;
+  villages: Village[];
 }
 
-export default function Header({ adminName, villageName }: HeaderProps) {
+export default function Header({
+  adminName,
+  villageName,
+  role,
+  currentVillageId,
+  villages,
+}: HeaderProps) {
   const pathname = usePathname();
   const title = getTitle(pathname);
   const initials = getInitials(adminName);
@@ -52,14 +63,21 @@ export default function Header({ adminName, villageName }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-6">
-        {/* Village Badge */}
-        <div
-          className="px-4 py-1.5 rounded-full font-bold flex items-center gap-2 text-sm"
-          style={{ backgroundColor: "#abeef6", color: "#0a5b62" }}
-        >
-          <span className="material-symbols-outlined text-sm">location_on</span>
-          {villageName ?? "Village Admin"}
-        </div>
+        {/* Village indicator: dropdown for super admin, static badge for village admin */}
+        {role === "super_admin" ? (
+          <VillageDropdown
+            villages={villages}
+            currentVillageId={currentVillageId}
+          />
+        ) : (
+          <div
+            className="px-4 py-1.5 rounded-full font-bold flex items-center gap-2 text-sm"
+            style={{ backgroundColor: "#abeef6", color: "#0a5b62" }}
+          >
+            <span className="material-symbols-outlined text-sm">location_on</span>
+            {villageName ?? "Village Admin"}
+          </div>
+        )}
 
         {/* Utility Actions */}
         <div className="flex items-center gap-2">

@@ -55,3 +55,22 @@ export interface JwtPayload {
   iat: number;
   exp: number;
 }
+
+export interface Village {
+  _id: string;
+  name: string;
+  createdAt?: string;
+}
+
+export interface VillageAdminInfo {
+  _id: string;
+  name: string;
+  phone: string | null;
+}
+
+export interface VillageStats {
+  village: Village;
+  familyCount: number;
+  userCount: number;
+  villageAdmin: VillageAdminInfo | null;
+}

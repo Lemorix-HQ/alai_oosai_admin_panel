@@ -9,7 +9,16 @@ export async function getAdminReportsAction(params?: { page?: string; limit?: st
 
 // POST /reports  — multipart: title (required), description (required), pdf (file, required)
 export async function createReportAction(formData: FormData) {
-  return postRequest<FormData, { id: string }>('/reports', formData);
+  const out = new FormData();
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      const buf = await value.arrayBuffer();
+      out.append(key, new Blob([buf], { type: value.type }), value.name);
+    } else {
+      out.append(key, value);
+    }
+  }
+  return postRequest<FormData, { id: string }>('/reports', out);
 }
 
 // PATCH /reports/:id  — JSON body only: { title?, description? }

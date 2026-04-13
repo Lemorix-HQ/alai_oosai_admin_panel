@@ -7,8 +7,37 @@ export async function getAdminAnnouncementsAction(params?: { page?: string; limi
   return getRequest<typeof params, Announcement[]>('/announcements/admin', params);
 }
 
+// File payloads are passed as Uint8Array + metadata to avoid Next.js multipart
+// serialization issues (fetchServerAction sends FormData as multipart to the
+// Next.js server, and Blob/File data can cause "Unexpected end of form" at that
+// layer before this function runs). Uint8Array is serialized via the RSC binary
+// protocol, bypassing multipart entirely.
+type FilePayload = { data: Uint8Array; name: string; type: string };
+
+export type CreateAnnouncementPayload = {
+  title: string;
+  description: string;
+  time: string;
+  image?: FilePayload;
+  video?: FilePayload;
+  voiceNote?: FilePayload;
+};
+
 // POST /announcements  — multipart: title, description, time?, image?, video?, voiceNote?
-export async function createAnnouncementAction(formData: FormData) {
+export async function createAnnouncementAction(payload: CreateAnnouncementPayload) {
+  const formData = new FormData();
+  formData.append('title', payload.title);
+  formData.append('description', payload.description);
+  formData.append('time', payload.time);
+  if (payload.image) {
+    formData.append('image', new Blob([payload.image.data], { type: payload.image.type }), payload.image.name);
+  }
+  if (payload.video) {
+    formData.append('video', new Blob([payload.video.data], { type: payload.video.type }), payload.video.name);
+  }
+  if (payload.voiceNote) {
+    formData.append('voiceNote', new Blob([payload.voiceNote.data], { type: payload.voiceNote.type }), payload.voiceNote.name);
+  }
   return postRequest<FormData, { id: string }>('/announcements', formData);
 }
 
