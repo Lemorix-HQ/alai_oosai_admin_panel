@@ -23,21 +23,43 @@ export type CreateAnnouncementPayload = {
   voiceNote?: FilePayload;
 };
 
+/**
+ * Copies a Uint8Array (which may back a SharedArrayBuffer) into a plain
+ * ArrayBuffer so it is accepted as a valid BlobPart by TypeScript ≥ 5.2.
+ */
+function toArrayBuffer(uint8: Uint8Array): ArrayBuffer {
+  return uint8.buffer.slice(uint8.byteOffset, uint8.byteOffset + uint8.byteLength) as ArrayBuffer;
+}
+
 // POST /announcements  — multipart: title, description, time?, image?, video?, voiceNote?
 export async function createAnnouncementAction(payload: CreateAnnouncementPayload) {
   const formData = new FormData();
   formData.append('title', payload.title);
   formData.append('description', payload.description);
   formData.append('time', payload.time);
+
   if (payload.image) {
-    formData.append('image', new Blob([payload.image.data], { type: payload.image.type }), payload.image.name);
+    formData.append(
+      'image',
+      new Blob([toArrayBuffer(payload.image.data)], { type: payload.image.type }),
+      payload.image.name,
+    );
   }
   if (payload.video) {
-    formData.append('video', new Blob([payload.video.data], { type: payload.video.type }), payload.video.name);
+    formData.append(
+      'video',
+      new Blob([toArrayBuffer(payload.video.data)], { type: payload.video.type }),
+      payload.video.name,
+    );
   }
   if (payload.voiceNote) {
-    formData.append('voiceNote', new Blob([payload.voiceNote.data], { type: payload.voiceNote.type }), payload.voiceNote.name);
+    formData.append(
+      'voiceNote',
+      new Blob([toArrayBuffer(payload.voiceNote.data)], { type: payload.voiceNote.type }),
+      payload.voiceNote.name,
+    );
   }
+
   return postRequest<FormData, { id: string }>('/announcements', formData);
 }
 
