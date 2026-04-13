@@ -2,7 +2,7 @@
 import { cookies } from 'next/headers';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
+console.log("API URL",API_BASE)
 export type ApiResponse<T = unknown> = {
   success: boolean;
   message: string;

@@ -2,14 +2,35 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useRef, useEffect } from "react";
 import { useAdminAnnouncements } from "@/src/hooks/useAnnouncements";
 import { formatDate } from "@/lib/utils";
 
 export default function AnnouncementViewPage() {
   const { id } = useParams<{ id: string }>();
   const { data: result, isLoading } = useAdminAnnouncements();
+  const voiceNoteRef = useRef<HTMLAudioElement>(null);
 
   const announcement = result?.data?.find((a) => a.id === id);
+
+  // Fix missing duration metadata in WebM/Ogg files recorded via MediaRecorder.
+  // Without this the progress bar jumps to the end immediately on first play.
+  useEffect(() => {
+    const audio = voiceNoteRef.current;
+    if (!audio) return;
+    const onLoaded = () => {
+      if (audio.duration === Infinity || isNaN(audio.duration)) {
+        const onSeeked = () => {
+          audio.removeEventListener("seeked", onSeeked);
+          audio.currentTime = 0;
+        };
+        audio.addEventListener("seeked", onSeeked);
+        audio.currentTime = 1e101;
+      }
+    };
+    audio.addEventListener("loadedmetadata", onLoaded);
+    return () => audio.removeEventListener("loadedmetadata", onLoaded);
+  }, [announcement?.voiceNote]);
 
   if (isLoading) {
     return (
@@ -105,7 +126,7 @@ export default function AnnouncementViewPage() {
               {announcement.voiceNote && (
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Voice Note</p>
-                  <audio src={announcement.voiceNote} controls className="w-full" />
+                  <audio ref={voiceNoteRef} src={announcement.voiceNote} controls className="w-full" preload="metadata" />
                 </div>
               )}
             </div>

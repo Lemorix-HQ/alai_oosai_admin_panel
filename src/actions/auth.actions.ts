@@ -1,6 +1,6 @@
 'use server';
 import { cookies } from 'next/headers';
-import { postRequest } from '@/services/api';
+import { getRequest, postRequest } from '@/services/api';
 import { redirect } from 'next/navigation';
 
 export async function sendOtpAction(phone_number: string) {
@@ -30,3 +30,29 @@ export async function logoutAction() {
   cookieStore.delete('admin_token');
   redirect('/login');
 }
+
+export async function switchVillageAction(village_id: string) {
+  const res = await postRequest<{ village_id: string }, { token: string }>(
+    '/auth/switch-village',
+    { village_id },
+  );
+  if (res.success && res.data?.token) {
+    const cookieStore = await cookies();
+    cookieStore.set('admin_token', res.data.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24, // 1 day
+      path: '/',
+    });
+  }
+  return res;
+}
+
+export async function getMeAction() {
+  return getRequest<
+    undefined,
+    { id: string; name: string; phone: string; role: string; village_id: string | null }
+  >('/auth/me');
+}
+

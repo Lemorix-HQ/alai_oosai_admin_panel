@@ -34,8 +34,9 @@ export default function EventsTable({ initialEvents }: EventsTableProps) {
   const { data: queryResult, isLoading } = useAdminEvents(params);
   const deleteEvent = useDeleteEvent();
 
-  const rawEvents =
-    params && queryResult?.data ? queryResult.data : initialEvents;
+  // Always prefer fresh query data so the list updates immediately after mutations
+  // (delete/create). Fall back to SSR initialEvents only before the first fetch resolves.
+  const rawEvents = queryResult?.data ?? initialEvents;
 
   const events = statusFilter
     ? rawEvents.filter((e) => {
