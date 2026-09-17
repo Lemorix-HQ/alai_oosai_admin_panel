@@ -63,7 +63,7 @@ Client components must call server actions from `src/actions/*.actions.ts`.
 
 ### Authentication
 - Cookie name: `admin_token`
-- JWT payload shape: `{ sub, phone, role, name, village_id?, iat, exp }`
+- JWT payload shape: `{ sub, phone, role, name, parish_id?, iat, exp }`
 - Middleware at `src/middleware.ts` protects all dashboard routes
 
 ---
@@ -110,8 +110,8 @@ tagArr.forEach((tag) => formData.append("tags[]", tag)); // WRONG
 ### Users (`/users`)
 - `PATCH /users/:id` — JSON body: `{ name: string }`. Uses JWT middleware (not Passport guard).
 
-### Villages (`/villages`)
-- `GET /villages/:id` — No auth required. Returns `{ _id, name }` directly (NOT in the standard `{ success, data }` format). Use `getVillageNameAction` from `src/actions/villages.actions.ts` which handles this non-standard response.
+### Parishes (`/parishes`)
+- `GET /parishes/:id` — No auth required. Returns `{ _id, name }` directly (NOT in the standard `{ success, data }` format). Use `getParishNameAction` from `src/actions/parishes.actions.ts` which handles this non-standard response.
 
 ---
 
@@ -126,7 +126,7 @@ src/
 │   ├── announcements.actions.ts
 │   ├── reports.actions.ts   # UpdateReportPayload type exported here
 │   ├── users.actions.ts     # updateUserNameAction
-│   └── villages.actions.ts  # getVillageNameAction — handles non-standard villages/:id response
+│   └── parishes.actions.ts  # getParishNameAction — handles non-standard parishes/:id response
 ├── hooks/
 │   ├── useEvents.ts         # useAdminEvents, useEvent, useCreateEvent, useUpdateEvent, useDeleteEvent
 │   ├── useAnnouncements.ts  # useAdminAnnouncements, useCreateAnnouncement ONLY (no update/delete hooks)

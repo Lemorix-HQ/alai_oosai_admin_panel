@@ -1,27 +1,27 @@
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
-import { JwtPayload, Village } from "@/src/types";
+import { JwtPayload, Parish } from "@/src/types";
 import {
-  getVillageNameAction,
-  listVillagesAction,
-} from "@/src/actions/villages.actions";
+  getParishNameAction,
+  listParishesAction,
+} from "@/src/actions/parishes.actions";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 
 type AdminContext = {
   name: string;
   role: JwtPayload["role"];
-  villageName: string | null;
-  currentVillageId: string | null;
-  villages: Village[];
+  parishName: string | null;
+  currentParishId: string | null;
+  parishes: Parish[];
 };
 
 const FALLBACK_CONTEXT: AdminContext = {
   name: "Admin",
-  role: "village_admin",
-  villageName: null,
-  currentVillageId: null,
-  villages: [],
+  role: "parish_admin",
+  parishName: null,
+  currentParishId: null,
+  parishes: [],
 };
 
 async function getAdminContext(): Promise<AdminContext> {
@@ -38,24 +38,24 @@ async function getAdminContext(): Promise<AdminContext> {
 
   const role = payload.role;
   const name = payload.name ?? "Admin";
-  const currentVillageId = payload.village_id ?? null;
+  const currentParishId = payload.parish_id ?? null;
 
-  const villageName = currentVillageId
-    ? await getVillageNameAction(currentVillageId)
+  const parishName = currentParishId
+    ? await getParishNameAction(currentParishId)
     : null;
 
-  let villages: Village[] = [];
+  let parishes: Parish[] = [];
   if (role === "super_admin") {
-    const villagesRes = await listVillagesAction();
-    villages = (villagesRes.data ?? []) as Village[];
+    const parishesRes = await listParishesAction();
+    parishes = (parishesRes.data ?? []) as Parish[];
   }
 
   return {
     name,
     role,
-    villageName,
-    currentVillageId,
-    villages,
+    parishName,
+    currentParishId,
+    parishes,
   };
 }
 
@@ -71,10 +71,10 @@ export default async function DashboardLayout({
       <Sidebar role={ctx.role} />
       <Header
         adminName={ctx.name}
-        villageName={ctx.villageName}
+        parishName={ctx.parishName}
         role={ctx.role}
-        currentVillageId={ctx.currentVillageId}
-        villages={ctx.villages}
+        currentParishId={ctx.currentParishId}
+        parishes={ctx.parishes}
       />
       <div className="ml-64 mt-16 flex-1">{children}</div>
     </div>

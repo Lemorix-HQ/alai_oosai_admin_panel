@@ -3,24 +3,24 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useSwitchVillage, useVillages } from "@/hooks/useVillages";
+import { useSwitchParish, useParishes } from "@/hooks/useParishes";
 
-export default function SelectVillagePage() {
+export default function SelectParishPage() {
   const router = useRouter();
-  const { data, isLoading } = useVillages();
-  const switchVillage = useSwitchVillage();
+  const { data, isLoading } = useParishes();
+  const switchParish = useSwitchParish();
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  const villages = data?.data ?? [];
+  const parishes = data?.data ?? [];
 
-  async function handleSelect(villageId: string) {
+  async function handleSelect(parishId: string) {
     setError(null);
-    setPendingId(villageId);
+    setPendingId(parishId);
     try {
-      const res = await switchVillage.mutateAsync(villageId);
+      const res = await switchParish.mutateAsync(parishId);
       if (!res.success) {
-        setError(res.message || "Failed to select village.");
+        setError(res.message || "Failed to select parish.");
         setPendingId(null);
         return;
       }
@@ -37,19 +37,19 @@ export default function SelectVillagePage() {
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <h3 className="text-2xl font-bold" style={{ color: "#0D5C63" }}>
-              Select a Village
+              Select a Parish
             </h3>
             <p className="text-slate-500 mt-1">
-              Pick the village you want to manage. You can switch any time from the header.
+              Pick the parish you want to manage. You can switch any time from the header.
             </p>
           </div>
           <Link
-            href="/create-village"
+            href="/create-parish"
             className="text-slate-900 font-bold px-6 py-3 rounded-lg shadow-md hover:shadow-xl active:scale-95 transition-all flex items-center gap-2"
             style={{ backgroundColor: "#F59E0B" }}
           >
             <span className="material-symbols-outlined">add_circle</span>
-            New Village
+            New Parish
           </Link>
         </div>
 
@@ -63,8 +63,8 @@ export default function SelectVillagePage() {
         )}
 
         {isLoading ? (
-          <div className="text-slate-400 text-sm">Loading villages…</div>
-        ) : villages.length === 0 ? (
+          <div className="text-slate-400 text-sm">Loading parishes…</div>
+        ) : parishes.length === 0 ? (
           <div
             className="bg-white rounded-xl shadow-sm border p-10 text-center"
             style={{ borderColor: "#e2e8f0" }}
@@ -75,21 +75,21 @@ export default function SelectVillagePage() {
               </span>
             </div>
             <h4 className="text-lg font-bold" style={{ color: "#0D5C63" }}>
-              No villages yet
+              No parishes yet
             </h4>
-            <p className="text-slate-500 mb-6 mt-1">Create the first village to get started.</p>
+            <p className="text-slate-500 mb-6 mt-1">Create the first parish to get started.</p>
             <Link
-              href="/create-village"
+              href="/create-parish"
               className="text-slate-900 font-bold px-6 py-3 rounded-lg shadow-md hover:shadow-xl active:scale-95 transition-all inline-flex items-center gap-2"
               style={{ backgroundColor: "#F59E0B" }}
             >
               <span className="material-symbols-outlined">add_circle</span>
-              Create Village
+              Create Parish
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {villages.map((v) => (
+            {parishes.map((v) => (
               <button
                 key={v._id}
                 onClick={() => handleSelect(v._id)}

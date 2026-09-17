@@ -9,10 +9,10 @@ interface ProfileFormProps {
   initialName: string;
   phone: string;
   role: string;
-  villageName?: string | null;
+  parishName?: string | null;
 }
 
-export default function ProfileForm({ userId, initialName, phone, role, villageName }: ProfileFormProps) {
+export default function ProfileForm({ userId, initialName, phone, role, parishName }: ProfileFormProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -116,17 +116,17 @@ export default function ProfileForm({ userId, initialName, phone, role, villageN
               }}
               readOnly
               type="text"
-              value={role === "super_admin" ? "Super Admin" : "Village Admin"}
+              value={role === "super_admin" ? "Super Admin" : "Parish Admin"}
             />
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
               lock
             </span>
           </div>
         </div>
-        {villageName && (
+        {parishName && (
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "#596065" }}>
-              Village
+              Parish
             </label>
             <div className="relative">
               <input
@@ -138,7 +138,7 @@ export default function ProfileForm({ userId, initialName, phone, role, villageN
                 }}
                 readOnly
                 type="text"
-                value={villageName}
+                value={parishName}
               />
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                 location_on

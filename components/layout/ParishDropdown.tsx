@@ -2,35 +2,35 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSwitchVillage } from "@/hooks/useVillages";
-import type { Village } from "@/src/types";
+import { useSwitchParish } from "@/hooks/useParishes";
+import type { Parish } from "@/src/types";
 
-interface VillageDropdownProps {
-  villages: Village[];
-  currentVillageId: string | null;
+interface ParishDropdownProps {
+  parishes: Parish[];
+  currentParishId: string | null;
 }
 
-export default function VillageDropdown({
-  villages,
-  currentVillageId,
-}: VillageDropdownProps) {
+export default function ParishDropdown({
+  parishes,
+  currentParishId,
+}: ParishDropdownProps) {
   const router = useRouter();
-  const { mutate, isPending } = useSwitchVillage();
+  const { mutate, isPending } = useSwitchParish();
   const [error, setError] = useState<string | null>(null);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const villageId = e.target.value;
-    if (!villageId || villageId === currentVillageId) return;
+    const parishId = e.target.value;
+    if (!parishId || parishId === currentParishId) return;
     setError(null);
-    mutate(villageId, {
+    mutate(parishId, {
       onSuccess: (res) => {
         if (res.success) {
           router.refresh();
         } else {
-          setError(res.message || "Failed to switch village");
+          setError(res.message || "Failed to switch parish");
         }
       },
-      onError: () => setError("Failed to switch village"),
+      onError: () => setError("Failed to switch parish"),
     });
   }
 
@@ -42,14 +42,14 @@ export default function VillageDropdown({
     >
       <span className="material-symbols-outlined text-sm">location_on</span>
       <select
-        value={currentVillageId ?? ""}
+        value={currentParishId ?? ""}
         onChange={handleChange}
-        disabled={isPending || villages.length === 0}
+        disabled={isPending || parishes.length === 0}
         className="bg-transparent font-bold text-sm focus:outline-none cursor-pointer"
         style={{ color: "#0a5b62" }}
       >
-        {!currentVillageId && <option value="">Select a village</option>}
-        {villages.map((v) => (
+        {!currentParishId && <option value="">Select a parish</option>}
+        {parishes.map((v) => (
           <option key={v._id} value={v._id}>
             {v.name}
           </option>

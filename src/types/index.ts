@@ -42,35 +42,35 @@ export interface User {
   _id: string;
   name: string;
   phone: string;
-  role: 'user' | 'village_admin' | 'super_admin';
-  village_id?: string;
+  role: 'user' | 'parish_admin' | 'super_admin';
+  parish_id?: string;
 }
 
 export interface JwtPayload {
   sub: string;
   phone: string;
-  role: 'village_admin' | 'super_admin';
+  role: 'parish_admin' | 'super_admin';
   name: string;
-  village_id?: string;
+  parish_id?: string;
   iat: number;
   exp: number;
 }
 
-export interface Village {
+export interface Parish {
   _id: string;
   name: string;
   createdAt?: string;
 }
 
-export interface VillageAdminInfo {
+export interface ParishAdminInfo {
   _id: string;
   name: string;
   phone: string | null;
 }
 
-export interface VillageStats {
-  village: Village;
+export interface ParishStats {
+  parish: Parish;
   familyCount: number;
   userCount: number;
-  villageAdmin: VillageAdminInfo | null;
+  parishAdmin: ParishAdminInfo | null;
 }

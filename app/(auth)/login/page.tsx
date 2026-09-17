@@ -50,7 +50,7 @@ export default function LoginPage() {
             Alai Oosai Admin
           </h1>
           <p className="text-sm font-medium mt-1" style={{ color: "#596065" }}>
-            Village Admin Portal
+            Parish Admin Portal
           </p>
         </header>
 

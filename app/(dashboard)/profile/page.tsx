@@ -1,26 +1,26 @@
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
 import { JwtPayload } from "@/src/types";
-import { getVillageNameAction } from "@/src/actions/villages.actions";
+import { getParishNameAction } from "@/src/actions/parishes.actions";
 import ProfileForm from "@/components/profile/ProfileForm";
 
-async function getProfile(): Promise<{ payload: JwtPayload | null; villageName: string | null }> {
+async function getProfile(): Promise<{ payload: JwtPayload | null; parishName: string | null }> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("admin_token")?.value;
-    if (!token) return { payload: null, villageName: null };
+    if (!token) return { payload: null, parishName: null };
     const payload = jwtDecode<JwtPayload>(token);
-    const villageName = payload.village_id
-      ? await getVillageNameAction(payload.village_id)
+    const parishName = payload.parish_id
+      ? await getParishNameAction(payload.parish_id)
       : null;
-    return { payload, villageName };
+    return { payload, parishName };
   } catch {
-    return { payload: null, villageName: null };
+    return { payload: null, parishName: null };
   }
 }
 
 export default async function ProfilePage() {
-  const { payload: profile, villageName } = await getProfile();
+  const { payload: profile, parishName } = await getProfile();
 
   const initials = profile?.name
     ? profile.name
@@ -59,7 +59,7 @@ export default async function ProfilePage() {
                 {profile?.name ?? "Admin"}
               </h3>
               <p className="font-medium" style={{ color: "#596065" }}>
-                @{profile?.role ?? "village_admin"}
+                @{profile?.role ?? "parish_admin"}
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2 mt-2">
@@ -67,14 +67,14 @@ export default async function ProfilePage() {
                 className="px-3 py-1 rounded-full text-xs font-bold"
                 style={{ backgroundColor: "#abeef6", color: "#0a5b62" }}
               >
-                {profile?.role === "super_admin" ? "Super Admin" : "Village Admin"}
+                {profile?.role === "super_admin" ? "Super Admin" : "Parish Admin"}
               </span>
-              {villageName && (
+              {parishName && (
                 <span
                   className="px-3 py-1 rounded-full text-xs font-bold"
                   style={{ backgroundColor: "#ffddb8", color: "#744800" }}
                 >
-                  {villageName}
+                  {parishName}
                 </span>
               )}
             </div>
@@ -86,8 +86,8 @@ export default async function ProfilePage() {
               userId={profile?.sub ?? ""}
               initialName={profile?.name ?? ""}
               phone={profile?.phone ?? ""}
-              role={profile?.role ?? "village_admin"}
-              villageName={villageName}
+              role={profile?.role ?? "parish_admin"}
+              parishName={parishName}
             />
           </div>
         </section>
@@ -111,7 +111,7 @@ export default async function ProfilePage() {
                 Role
               </span>
               <span className="font-semibold text-sm" style={{ color: "#2c3338" }}>
-                {profile?.role === "super_admin" ? "Super Admin" : "Village Admin"}
+                {profile?.role === "super_admin" ? "Super Admin" : "Parish Admin"}
               </span>
             </div>
             <div className="flex flex-col">

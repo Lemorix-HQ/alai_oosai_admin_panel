@@ -33,10 +33,10 @@ export async function logoutAction() {
   redirect('/login');
 }
 
-export async function switchVillageAction(village_id: string) {
-  const res = await postRequest<{ village_id: string }, { token: string }>(
-    '/auth/switch-village',
-    { village_id },
+export async function switchParishAction(parish_id: string) {
+  const res = await postRequest<{ parish_id: string }, { token: string }>(
+    '/auth/switch-parish',
+    { parish_id },
   );
   if (res.success && res.data?.token) {
     const cookieStore = await cookies();
@@ -54,7 +54,7 @@ export async function switchVillageAction(village_id: string) {
 export async function getMeAction() {
   return getRequest<
     undefined,
-    { id: string; name: string; phone: string; role: string; village_id: string | null }
+    { id: string; name: string; phone: string; role: string; parish_id: string | null }
   >('/auth/me');
 }
 

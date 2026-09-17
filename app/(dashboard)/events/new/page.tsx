@@ -454,7 +454,7 @@ export default function NewEventPage() {
           <div>
             <h5 className="font-bold mb-1" style={{ color: "#2c3338" }}>Push Alert</h5>
             <p className="text-sm leading-relaxed" style={{ color: "#596065" }}>
-              Saving this event will automatically notify 450+ villagers in this zone.
+              Saving this event will automatically notify 450+ parishioners in this zone.
             </p>
           </div>
         </div>

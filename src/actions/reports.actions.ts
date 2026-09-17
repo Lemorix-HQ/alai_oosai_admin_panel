@@ -2,7 +2,7 @@
 import { getRequest, postRequest, patchRequest, deleteRequest } from '@/services/api';
 import { Report } from '@/types';
 
-// GET /reports/admin  — list all reports for this village
+// GET /reports/admin  — list all reports for this parish
 export async function getAdminReportsAction(params?: { page?: string; limit?: string }) {
   return getRequest<typeof params, Report[]>('/reports/admin', params);
 }

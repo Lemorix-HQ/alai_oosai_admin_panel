@@ -1,8 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import VillageDropdown from "./VillageDropdown";
-import type { JwtPayload, Village } from "@/src/types";
+import ParishDropdown from "./ParishDropdown";
+import type { JwtPayload, Parish } from "@/src/types";
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -34,18 +34,18 @@ function getInitials(name: string): string {
 
 interface HeaderProps {
   adminName: string;
-  villageName: string | null;
+  parishName: string | null;
   role: JwtPayload["role"];
-  currentVillageId: string | null;
-  villages: Village[];
+  currentParishId: string | null;
+  parishes: Parish[];
 }
 
 export default function Header({
   adminName,
-  villageName,
+  parishName,
   role,
-  currentVillageId,
-  villages,
+  currentParishId,
+  parishes,
 }: HeaderProps) {
   const pathname = usePathname();
   const title = getTitle(pathname);
@@ -63,11 +63,11 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-6">
-        {/* Village indicator: dropdown for super admin, static badge for village admin */}
+        {/* Parish indicator: dropdown for super admin, static badge for parish admin */}
         {role === "super_admin" ? (
-          <VillageDropdown
-            villages={villages}
-            currentVillageId={currentVillageId}
+          <ParishDropdown
+            parishes={parishes}
+            currentParishId={currentParishId}
           />
         ) : (
           <div
@@ -75,7 +75,7 @@ export default function Header({
             style={{ backgroundColor: "#abeef6", color: "#0a5b62" }}
           >
             <span className="material-symbols-outlined text-sm">location_on</span>
-            {villageName ?? "Village Admin"}
+            {parishName ?? "Parish Admin"}
           </div>
         )}
 

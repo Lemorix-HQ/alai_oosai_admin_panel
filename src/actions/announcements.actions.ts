@@ -2,7 +2,7 @@
 import { getRequest, postRequest } from '@/services/api';
 import { Announcement } from '@/types';
 
-// GET /announcements/admin  — list all announcements for this village
+// GET /announcements/admin  — list all announcements for this parish
 export async function getAdminAnnouncementsAction(params?: { page?: string; limit?: string }) {
   return getRequest<typeof params, Announcement[]>('/announcements/admin', params);
 }

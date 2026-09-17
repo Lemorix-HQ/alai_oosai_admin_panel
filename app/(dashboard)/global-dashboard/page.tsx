@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { jwtDecode } from "jwt-decode";
-import { JwtPayload, Village } from "@/src/types";
-import { listVillagesAction } from "@/src/actions/villages.actions";
+import { JwtPayload, Parish } from "@/src/types";
+import { listParishesAction } from "@/src/actions/parishes.actions";
 
 async function ensureSuperAdmin() {
   const cookieStore = await cookies();
@@ -19,8 +19,8 @@ async function ensureSuperAdmin() {
 
 export default async function GlobalDashboardPage() {
   await ensureSuperAdmin();
-  const res = await listVillagesAction();
-  const villages = (res.data ?? []) as Village[];
+  const res = await listParishesAction();
+  const parishes = (res.data ?? []) as Parish[];
 
   return (
     <main className="p-8 min-h-[calc(100vh-64px)]" style={{ backgroundColor: "#f7f9fc" }}>
@@ -31,16 +31,16 @@ export default async function GlobalDashboardPage() {
               Global Dashboard
             </h3>
             <p className="text-slate-500 mt-1">
-              All villages on the platform. Open one to manage its admin and view stats.
+              All parishes on the platform. Open one to manage its admin and view stats.
             </p>
           </div>
           <Link
-            href="/create-village"
+            href="/create-parish"
             className="text-slate-900 font-bold px-6 py-3 rounded-lg shadow-md hover:shadow-xl active:scale-95 transition-all flex items-center gap-2"
             style={{ backgroundColor: "#F59E0B" }}
           >
             <span className="material-symbols-outlined">add_circle</span>
-            New Village
+            New Parish
           </Link>
         </div>
 
@@ -51,20 +51,20 @@ export default async function GlobalDashboardPage() {
           <table className="w-full text-sm">
             <thead style={{ backgroundColor: "#f8fafc" }}>
               <tr className="text-left">
-                <th className="px-6 py-4 font-semibold text-slate-600">Village Name</th>
+                <th className="px-6 py-4 font-semibold text-slate-600">Parish Name</th>
                 <th className="px-6 py-4 font-semibold text-slate-600">Created</th>
                 <th className="px-6 py-4 font-semibold text-slate-600 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y" style={{ borderColor: "#f1f5f9" }}>
-              {villages.length === 0 ? (
+              {parishes.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-6 py-10 text-center text-slate-400">
-                    No villages yet.
+                    No parishes yet.
                   </td>
                 </tr>
               ) : (
-                villages.map((v) => (
+                parishes.map((v) => (
                   <tr key={v._id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 font-semibold" style={{ color: "#2c3338" }}>
                       {v.name}

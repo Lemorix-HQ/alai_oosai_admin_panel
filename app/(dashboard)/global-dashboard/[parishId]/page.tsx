@@ -5,34 +5,34 @@ import { useRouter, useParams } from "next/navigation";
 import { useFormik } from "formik";
 import { useEffect, useState } from "react";
 import {
-  useAssignVillageAdmin,
-  useDeleteVillage,
-  useRemoveVillageAdmin,
-  useUpdateVillage,
-  useVillageStats,
-} from "@/hooks/useVillages";
+  useAssignParishAdmin,
+  useDeleteParish,
+  useRemoveParishAdmin,
+  useUpdateParish,
+  useParishStats,
+} from "@/hooks/useParishes";
 
-export default function VillageDetailPage() {
+export default function ParishDetailPage() {
   const router = useRouter();
-  const params = useParams<{ villageId: string }>();
-  const villageId = params.villageId;
+  const params = useParams<{ parishId: string }>();
+  const parishId = params.parishId;
 
-  const { data: statsRes, isLoading } = useVillageStats(villageId);
-  const updateVillage = useUpdateVillage(villageId);
-  const deleteVillage = useDeleteVillage();
-  const assignAdmin = useAssignVillageAdmin(villageId);
-  const removeAdmin = useRemoveVillageAdmin(villageId);
+  const { data: statsRes, isLoading } = useParishStats(parishId);
+  const updateParish = useUpdateParish(parishId);
+  const deleteParish = useDeleteParish();
+  const assignAdmin = useAssignParishAdmin(parishId);
+  const removeAdmin = useRemoveParishAdmin(parishId);
 
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const stats = statsRes?.data;
-  const village = stats?.village;
-  const villageAdmin = stats?.villageAdmin ?? null;
+  const parish = stats?.parish;
+  const parishAdmin = stats?.parishAdmin ?? null;
 
   const editForm = useFormik({
     enableReinitialize: true,
-    initialValues: { name: village?.name ?? "" },
+    initialValues: { name: parish?.name ?? "" },
     validate: (values) => {
       const errors: Record<string, string> = {};
       if (!values.name.trim()) errors.name = "Name is required";
@@ -41,8 +41,8 @@ export default function VillageDetailPage() {
     onSubmit: async (values, { setSubmitting }) => {
       setError(null);
       try {
-        const res = await updateVillage.mutateAsync({ name: values.name.trim() });
-        if (!res.success) setError(res.message || "Failed to update village.");
+        const res = await updateParish.mutateAsync({ name: values.name.trim() });
+        if (!res.success) setError(res.message || "Failed to update parish.");
       } catch {
         setError("Network error. Please try again.");
       } finally {
@@ -81,16 +81,16 @@ export default function VillageDetailPage() {
 
   useEffect(() => {
     if (statsRes && !statsRes.success) {
-      setError(statsRes.message || "Failed to load village.");
+      setError(statsRes.message || "Failed to load parish.");
     }
   }, [statsRes]);
 
   async function handleDelete() {
     setError(null);
     try {
-      const res = await deleteVillage.mutateAsync(villageId);
+      const res = await deleteParish.mutateAsync(parishId);
       if (!res.success) {
-        setError(res.message || "Failed to delete village.");
+        setError(res.message || "Failed to delete parish.");
         return;
       }
       router.push("/global-dashboard");
@@ -112,16 +112,16 @@ export default function VillageDetailPage() {
   if (isLoading) {
     return (
       <main className="p-8 min-h-[calc(100vh-64px)]" style={{ backgroundColor: "#f7f9fc" }}>
-        <div className="max-w-5xl mx-auto text-slate-400 text-sm">Loading village…</div>
+        <div className="max-w-5xl mx-auto text-slate-400 text-sm">Loading parish…</div>
       </main>
     );
   }
 
-  if (!village) {
+  if (!parish) {
     return (
       <main className="p-8 min-h-[calc(100vh-64px)]" style={{ backgroundColor: "#f7f9fc" }}>
         <div className="max-w-5xl mx-auto">
-          <p className="text-slate-500">Village not found.</p>
+          <p className="text-slate-500">Parish not found.</p>
           <Link href="/global-dashboard" className="text-sm font-semibold mt-4 inline-block" style={{ color: "#21686f" }}>
             ← Back to global dashboard
           </Link>
@@ -141,7 +141,7 @@ export default function VillageDetailPage() {
             chevron_right
           </span>
           <span className="font-semibold" style={{ color: "#0D5C63" }}>
-            {village.name}
+            {parish.name}
           </span>
         </nav>
 
@@ -196,12 +196,12 @@ export default function VillageDetailPage() {
           style={{ borderColor: "#e2e8f0" }}
         >
           <h4 className="text-lg font-bold mb-4" style={{ color: "#0D5C63" }}>
-            Village Details
+            Parish Details
           </h4>
           <form className="space-y-4" onSubmit={editForm.handleSubmit}>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Village Name
+                Parish Name
               </label>
               <input
                 className="w-full px-4 py-3 rounded-lg border outline-none transition-all"
@@ -228,7 +228,7 @@ export default function VillageDetailPage() {
                 className="px-4 py-2 rounded-lg font-semibold text-sm border transition-all"
                 style={{ borderColor: "#a83836", color: "#a83836" }}
               >
-                Delete Village
+                Delete Parish
               </button>
               <button
                 type="submit"
@@ -242,20 +242,20 @@ export default function VillageDetailPage() {
           </form>
         </section>
 
-        {/* Village Admin */}
+        {/* Parish Admin */}
         <section
           className="bg-white rounded-xl shadow-sm border p-8"
           style={{ borderColor: "#e2e8f0" }}
         >
           <h4 className="text-lg font-bold mb-4" style={{ color: "#0D5C63" }}>
-            Village Admin
+            Parish Admin
           </h4>
 
-          {villageAdmin ? (
+          {parishAdmin ? (
             <div className="flex items-center justify-between gap-4 p-4 rounded-lg" style={{ backgroundColor: "#f8fafc" }}>
               <div>
-                <p className="font-semibold" style={{ color: "#2c3338" }}>{villageAdmin.name}</p>
-                <p className="text-sm text-slate-500">{villageAdmin.phone ?? "No phone"}</p>
+                <p className="font-semibold" style={{ color: "#2c3338" }}>{parishAdmin.name}</p>
+                <p className="text-sm text-slate-500">{parishAdmin.phone ?? "No phone"}</p>
               </div>
               <button
                 type="button"
@@ -273,7 +273,7 @@ export default function VillageDetailPage() {
 
           <form className="space-y-4 mt-6" onSubmit={adminForm.handleSubmit}>
             <h5 className="text-sm font-bold uppercase tracking-wider text-slate-500">
-              {villageAdmin ? "Replace Admin" : "Assign Admin"}
+              {parishAdmin ? "Replace Admin" : "Assign Admin"}
             </h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -328,7 +328,7 @@ export default function VillageDetailPage() {
                 className="text-slate-900 font-bold px-6 py-3 rounded-lg shadow-md hover:shadow-xl active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ backgroundColor: "#F59E0B" }}
               >
-                {adminForm.isSubmitting ? "Saving…" : villageAdmin ? "Replace Admin" : "Assign Admin"}
+                {adminForm.isSubmitting ? "Saving…" : parishAdmin ? "Replace Admin" : "Assign Admin"}
               </button>
             </div>
           </form>
@@ -339,11 +339,11 @@ export default function VillageDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 mx-4">
             <h4 className="text-lg font-bold" style={{ color: "#a83836" }}>
-              Delete Village
+              Delete Parish
             </h4>
             <p className="text-sm text-slate-600 mt-2">
-              Are you sure you want to delete <strong>{village.name}</strong>? This action cannot be
-              undone. The village admin will also be removed.
+              Are you sure you want to delete <strong>{parish.name}</strong>? This action cannot be
+              undone. The parish admin will also be removed.
             </p>
             <div className="flex justify-end gap-3 mt-6">
               <button
@@ -355,11 +355,11 @@ export default function VillageDetailPage() {
               </button>
               <button
                 onClick={handleDelete}
-                disabled={deleteVillage.isPending}
+                disabled={deleteParish.isPending}
                 className="px-4 py-2 rounded-lg font-semibold text-sm text-white transition-all disabled:opacity-60"
                 style={{ backgroundColor: "#a83836" }}
               >
-                {deleteVillage.isPending ? "Deleting…" : "Delete"}
+                {deleteParish.isPending ? "Deleting…" : "Delete"}
               </button>
             </div>
           </div>

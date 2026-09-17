@@ -6,7 +6,7 @@ import { JwtPayload } from "@/src/types";
 import { getAdminEventsAction } from "@/src/actions/events.actions";
 import { getAdminAnnouncementsAction } from "@/src/actions/announcements.actions";
 import { getAdminReportsAction } from "@/src/actions/reports.actions";
-import { listVillagesAction } from "@/src/actions/villages.actions";
+import { listParishesAction } from "@/src/actions/parishes.actions";
 
 async function getAdminPayload(): Promise<JwtPayload | null> {
   try {
@@ -22,11 +22,11 @@ async function getAdminPayload(): Promise<JwtPayload | null> {
 export default async function DashboardPage() {
   const payload = await getAdminPayload();
 
-  // Super admin without a selected village must pick one (or create one) first.
-  if (payload?.role === "super_admin" && !payload.village_id) {
-    const villagesRes = await listVillagesAction();
-    const villages = villagesRes.data ?? [];
-    redirect(villages.length === 0 ? "/create-village" : "/select-village");
+  // Super admin without a selected parish must pick one (or create one) first.
+  if (payload?.role === "super_admin" && !payload.parish_id) {
+    const parishesRes = await listParishesAction();
+    const parishes = parishesRes.data ?? [];
+    redirect(parishes.length === 0 ? "/create-parish" : "/select-parish");
   }
 
   const [eventsResult, announcementsResult, reportsResult] = await Promise.all([
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
               <span className="material-symbols-outlined" style={{ color: "#F59E0B" }}>
                 home_pin
               </span>
-              Alai Oosai Village Administration
+              Alai Oosai Parish Administration
             </p>
           </div>
           {/* Abstract background pattern */}

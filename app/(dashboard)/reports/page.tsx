@@ -15,7 +15,7 @@ export default async function ReportsPage() {
             Financial Reports
           </h1>
           <p className="mt-1" style={{ color: "#596065" }}>
-            Review, manage and upload village financial statements and income reports.
+            Review, manage and upload parish financial statements and income reports.
           </p>
         </div>
         <Link

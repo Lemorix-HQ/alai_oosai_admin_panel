@@ -15,7 +15,7 @@ export default async function EventsPage() {
             Events
           </h1>
           <p className="text-sm text-slate-500 font-medium">
-            Manage and monitor village activities
+            Manage and monitor parish activities
           </p>
         </div>
         <Link

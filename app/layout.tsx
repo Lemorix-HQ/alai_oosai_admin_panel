@@ -4,7 +4,7 @@ import QueryProvider from "@/src/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "Alai Oosai Admin",
-  description: "Village Admin Portal - Alai Oosai",
+  description: "Parish Admin Portal - Alai Oosai",
 };
 
 export default function RootLayout({

@@ -4,34 +4,34 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import { useState } from "react";
-import { useCreateVillage, useSwitchVillage } from "@/hooks/useVillages";
+import { useCreateParish, useSwitchParish } from "@/hooks/useParishes";
 
-export default function CreateVillagePage() {
+export default function CreateParishPage() {
   const router = useRouter();
-  const createVillage = useCreateVillage();
-  const switchVillage = useSwitchVillage();
+  const createParish = useCreateParish();
+  const switchParish = useSwitchParish();
   const [apiError, setApiError] = useState<string | null>(null);
 
   const formik = useFormik({
     initialValues: { name: "" },
     validate: (values) => {
       const errors: Record<string, string> = {};
-      if (!values.name.trim()) errors.name = "Village name is required";
+      if (!values.name.trim()) errors.name = "Parish name is required";
       return errors;
     },
     onSubmit: async (values, { setSubmitting }) => {
       setApiError(null);
       try {
-        const res = await createVillage.mutateAsync({ name: values.name.trim() });
+        const res = await createParish.mutateAsync({ name: values.name.trim() });
         if (!res.success || !res.data?._id) {
-          setApiError(res.message || "Failed to create village.");
+          setApiError(res.message || "Failed to create parish.");
           setSubmitting(false);
           return;
         }
-        // Auto-assign the freshly created village to the current super admin
-        const switchRes = await switchVillage.mutateAsync(res.data._id);
+        // Auto-assign the freshly created parish to the current super admin
+        const switchRes = await switchParish.mutateAsync(res.data._id);
         if (!switchRes.success) {
-          setApiError(switchRes.message || "Village created but selection failed.");
+          setApiError(switchRes.message || "Parish created but selection failed.");
           setSubmitting(false);
           return;
         }
@@ -54,14 +54,14 @@ export default function CreateVillagePage() {
     <main className="pt-0 min-h-screen" style={{ backgroundColor: "#F5F7FA" }}>
       <div className="p-8 max-w-3xl mx-auto">
         <nav className="flex items-center gap-2 mb-6 text-sm">
-          <Link href="/select-village" className="hover:underline" style={{ color: "#596065" }}>
-            Villages
+          <Link href="/select-parish" className="hover:underline" style={{ color: "#596065" }}>
+            Parishes
           </Link>
           <span className="material-symbols-outlined text-xs" style={{ color: "#abb3b9" }}>
             chevron_right
           </span>
           <span className="font-semibold" style={{ color: "#0D5C63" }}>
-            Create Village
+            Create Parish
           </span>
         </nav>
 
@@ -72,10 +72,10 @@ export default function CreateVillagePage() {
           <div className="p-8">
             <div className="mb-6">
               <h3 className="text-2xl font-bold" style={{ color: "#0D5C63" }}>
-                Create New Village
+                Create New Parish
               </h3>
               <p className="text-slate-500 mt-1">
-                Add a village (tenant) to the platform. You can assign a village admin from
+                Add a parish (tenant) to the platform. You can assign a parish admin from
                 the global dashboard once it&apos;s created.
               </p>
             </div>
@@ -92,7 +92,7 @@ export default function CreateVillagePage() {
             <form className="space-y-6" onSubmit={formik.handleSubmit}>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Village Name <span style={{ color: "#a83836" }}>*</span>
+                  Parish Name <span style={{ color: "#a83836" }}>*</span>
                 </label>
                 <input
                   className="w-full px-4 py-3 rounded-lg border outline-none transition-all"
@@ -118,7 +118,7 @@ export default function CreateVillagePage() {
                 style={{ borderColor: "#f1f5f9" }}
               >
                 <Link
-                  href="/select-village"
+                  href="/select-parish"
                   className="px-6 py-3 font-semibold border border-transparent hover:border-current rounded-lg transition-all"
                   style={{ color: "#0D5C63" }}
                 >
@@ -137,7 +137,7 @@ export default function CreateVillagePage() {
                     </span>
                   ) : (
                     <>
-                      Create Village
+                      Create Parish
                       <span className="material-symbols-outlined text-sm">arrow_forward</span>
                     </>
                   )}
