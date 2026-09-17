@@ -4,7 +4,9 @@ import { getRequest, postRequest } from '@/services/api';
 import { redirect } from 'next/navigation';
 
 export async function sendOtpAction(phone_number: string) {
-  return postRequest<{ phone_number: string }, null>('/auth/send-otp', { phone_number });
+   const res =await postRequest<{ phone_number: string }, null>('/auth/send-otp', { phone_number });
+   console.log("set otp res",res)
+   return res;
 }
 
 export async function verifyOtpAction(phone_number: string, otp: number) {
