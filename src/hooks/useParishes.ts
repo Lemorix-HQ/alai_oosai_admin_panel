@@ -4,11 +4,15 @@ import {
   assignParishAdminAction,
   createParishAction,
   deleteParishAction,
+  getParishAction,
   getParishStatsAction,
   listParishesAction,
   removeParishAdminAction,
   updateParishAction,
+  updateParishSettingsAction,
+  type ParishPayload,
 } from '@/actions/parishes.actions';
+import type { ParishSettings } from '@/src/types';
 import { switchParishAction } from '@/actions/auth.actions';
 
 export function useParishes() {
@@ -31,7 +35,7 @@ export function useParishStats(id: string) {
 export function useCreateParish() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { name: string }) => createParishAction(payload),
+    mutationFn: (payload: ParishPayload) => createParishAction(payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['parishes'] }),
   });
 }
@@ -39,9 +43,30 @@ export function useCreateParish() {
 export function useUpdateParish(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { name: string }) => updateParishAction(id, payload),
+    mutationFn: (payload: Partial<ParishPayload>) => updateParishAction(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parishes'] });
+      queryClient.invalidateQueries({ queryKey: ['parish', id] });
+      queryClient.invalidateQueries({ queryKey: ['parish-stats', id] });
+    },
+  });
+}
+
+export function useParish(id: string) {
+  return useQuery({
+    queryKey: ['parish', id],
+    queryFn: () => getParishAction(id),
+    enabled: !!id,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useUpdateParishSettings(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Partial<ParishSettings>) => updateParishSettingsAction(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parish', id] });
       queryClient.invalidateQueries({ queryKey: ['parish-stats', id] });
     },
   });

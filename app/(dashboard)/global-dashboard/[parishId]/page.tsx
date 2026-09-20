@@ -1,370 +1,199 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
-import { useFormik } from "formik";
-import { useEffect, useState } from "react";
-import {
-  useAssignParishAdmin,
-  useDeleteParish,
-  useRemoveParishAdmin,
-  useUpdateParish,
-  useParishStats,
-} from "@/hooks/useParishes";
+import { use, useState } from "react";
+import PageShell from "@/components/ui/PageShell";
+import StatCard from "@/components/ui/StatCard";
+import StatusPill from "@/components/ui/StatusPill";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { FormCard } from "@/components/ui/Field";
+import { useDeleteParish, useParishStats, useSwitchParish } from "@/hooks/useParishes";
+import { useRouter } from "next/navigation";
 
-export default function ParishDetailPage() {
+export default function ParishDetailPage({
+  params,
+}: {
+  params: Promise<{ parishId: string }>;
+}) {
+  const { parishId } = use(params);
   const router = useRouter();
-  const params = useParams<{ parishId: string }>();
-  const parishId = params.parishId;
-
   const { data: statsRes, isLoading } = useParishStats(parishId);
-  const updateParish = useUpdateParish(parishId);
   const deleteParish = useDeleteParish();
-  const assignAdmin = useAssignParishAdmin(parishId);
-  const removeAdmin = useRemoveParishAdmin(parishId);
-
+  const switchParish = useSwitchParish();
   const [error, setError] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const stats = statsRes?.data;
   const parish = stats?.parish;
-  const parishAdmin = stats?.parishAdmin ?? null;
-
-  const editForm = useFormik({
-    enableReinitialize: true,
-    initialValues: { name: parish?.name ?? "" },
-    validate: (values) => {
-      const errors: Record<string, string> = {};
-      if (!values.name.trim()) errors.name = "Name is required";
-      return errors;
-    },
-    onSubmit: async (values, { setSubmitting }) => {
-      setError(null);
-      try {
-        const res = await updateParish.mutateAsync({ name: values.name.trim() });
-        if (!res.success) setError(res.message || "Failed to update parish.");
-      } catch {
-        setError("Network error. Please try again.");
-      } finally {
-        setSubmitting(false);
-      }
-    },
-  });
-
-  const adminForm = useFormik({
-    initialValues: { name: "", phone: "" },
-    validate: (values) => {
-      const errors: Record<string, string> = {};
-      if (!values.name.trim()) errors.name = "Name is required";
-      if (!values.phone.trim()) errors.phone = "Phone is required";
-      return errors;
-    },
-    onSubmit: async (values, { setSubmitting, resetForm }) => {
-      setError(null);
-      try {
-        const res = await assignAdmin.mutateAsync({
-          name: values.name.trim(),
-          phone: values.phone.trim(),
-        });
-        if (!res.success) {
-          setError(res.message || "Failed to assign admin.");
-        } else {
-          resetForm();
-        }
-      } catch {
-        setError("Network error. Please try again.");
-      } finally {
-        setSubmitting(false);
-      }
-    },
-  });
-
-  useEffect(() => {
-    if (statsRes && !statsRes.success) {
-      setError(statsRes.message || "Failed to load parish.");
-    }
-  }, [statsRes]);
-
-  async function handleDelete() {
-    setError(null);
-    try {
-      const res = await deleteParish.mutateAsync(parishId);
-      if (!res.success) {
-        setError(res.message || "Failed to delete parish.");
-        return;
-      }
-      router.push("/global-dashboard");
-    } catch {
-      setError("Network error. Please try again.");
-    }
-  }
-
-  async function handleRemoveAdmin() {
-    setError(null);
-    try {
-      const res = await removeAdmin.mutateAsync();
-      if (!res.success) setError(res.message || "Failed to remove admin.");
-    } catch {
-      setError("Network error. Please try again.");
-    }
-  }
 
   if (isLoading) {
     return (
-      <main className="p-8 min-h-[calc(100vh-64px)]" style={{ backgroundColor: "#f7f9fc" }}>
-        <div className="max-w-5xl mx-auto text-slate-400 text-sm">Loading parish…</div>
-      </main>
+      <PageShell title="Parish">
+        <p className="text-sm text-slate-500">Loading…</p>
+      </PageShell>
     );
   }
 
   if (!parish) {
     return (
-      <main className="p-8 min-h-[calc(100vh-64px)]" style={{ backgroundColor: "#f7f9fc" }}>
-        <div className="max-w-5xl mx-auto">
-          <p className="text-slate-500">Parish not found.</p>
-          <Link href="/global-dashboard" className="text-sm font-semibold mt-4 inline-block" style={{ color: "#21686f" }}>
-            ← Back to global dashboard
-          </Link>
-        </div>
-      </main>
+      <PageShell title="Parish" breadcrumb={[{ href: "/global-dashboard", label: "All parishes" }]}>
+        <p className="text-sm text-slate-500">{statsRes?.message ?? "Parish not found."}</p>
+      </PageShell>
     );
   }
 
   return (
-    <main className="p-8 min-h-[calc(100vh-64px)]" style={{ backgroundColor: "#f7f9fc" }}>
-      <div className="max-w-5xl mx-auto space-y-8">
-        <nav className="flex items-center gap-2 text-sm">
-          <Link href="/global-dashboard" className="hover:underline" style={{ color: "#596065" }}>
-            Global Dashboard
-          </Link>
-          <span className="material-symbols-outlined text-xs" style={{ color: "#abb3b9" }}>
-            chevron_right
-          </span>
-          <span className="font-semibold" style={{ color: "#0D5C63" }}>
-            {parish.name}
-          </span>
-        </nav>
-
-        {error && (
-          <div
-            className="p-3 rounded-lg text-sm font-medium"
-            style={{ backgroundColor: "rgba(168,56,54,0.1)", color: "#a83836" }}
+    <PageShell
+      title={parish.name}
+      subtitle={[parish.code, parish.diocese].filter(Boolean).join(" · ")}
+      breadcrumb={[{ href: "/global-dashboard", label: "All parishes" }, { label: parish.name }]}
+      action={
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={async () => {
+              // Working "inside" a parish means holding its tenant on the token;
+              // every scoped endpoint reads parish_id from there, not from the URL.
+              const res = await switchParish.mutateAsync(parishId);
+              if (res.success) router.push("/");
+              else setError(res.message);
+            }}
+            className="font-bold py-2.5 px-5 rounded-lg inline-flex items-center gap-2 shadow-sm"
+            style={{ backgroundColor: "#F59E0B", color: "#0D5C63" }}
           >
-            {error}
-          </div>
-        )}
-
-        {/* Stats */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div
-            className="bg-white p-6 rounded-xl shadow-sm border flex items-center gap-4"
-            style={{ borderColor: "#f1f5f9" }}
-          >
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#f0fdfc" }}>
-              <span className="material-symbols-outlined" style={{ color: "#0D5C63" }}>
-                groups
-              </span>
-            </div>
-            <div>
-              <p className="text-slate-500 font-medium text-sm">Family Cards</p>
-              <h4 className="text-3xl font-black" style={{ color: "#2c3338" }}>
-                {stats?.familyCount ?? 0}
-              </h4>
-            </div>
-          </div>
-          <div
-            className="bg-white p-6 rounded-xl shadow-sm border flex items-center gap-4"
-            style={{ borderColor: "#f1f5f9" }}
-          >
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#f0fdfc" }}>
-              <span className="material-symbols-outlined" style={{ color: "#0D5C63" }}>
-                person
-              </span>
-            </div>
-            <div>
-              <p className="text-slate-500 font-medium text-sm">Registered Users</p>
-              <h4 className="text-3xl font-black" style={{ color: "#2c3338" }}>
-                {stats?.userCount ?? 0}
-              </h4>
-            </div>
-          </div>
-        </section>
-
-        {/* Edit + Delete */}
-        <section
-          className="bg-white rounded-xl shadow-sm border p-8"
-          style={{ borderColor: "#e2e8f0" }}
-        >
-          <h4 className="text-lg font-bold mb-4" style={{ color: "#0D5C63" }}>
-            Parish Details
-          </h4>
-          <form className="space-y-4" onSubmit={editForm.handleSubmit}>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Parish Name
-              </label>
-              <input
-                className="w-full px-4 py-3 rounded-lg border outline-none transition-all"
-                style={{
-                  borderColor:
-                    editForm.touched.name && editForm.errors.name ? "#a83836" : "#e2e8f0",
-                }}
-                name="name"
-                type="text"
-                value={editForm.values.name}
-                onChange={editForm.handleChange}
-                onBlur={editForm.handleBlur}
-              />
-              {editForm.touched.name && editForm.errors.name && (
-                <p className="text-xs mt-1" style={{ color: "#a83836" }}>
-                  {editForm.errors.name}
-                </p>
-              )}
-            </div>
-            <div className="flex justify-between items-center pt-2">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-2 rounded-lg font-semibold text-sm border transition-all"
-                style={{ borderColor: "#a83836", color: "#a83836" }}
-              >
-                Delete Parish
-              </button>
-              <button
-                type="submit"
-                disabled={editForm.isSubmitting}
-                className="text-slate-900 font-bold px-6 py-3 rounded-lg shadow-md hover:shadow-xl active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ backgroundColor: "#F59E0B" }}
-              >
-                {editForm.isSubmitting ? "Saving…" : "Save Changes"}
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* Parish Admin */}
-        <section
-          className="bg-white rounded-xl shadow-sm border p-8"
-          style={{ borderColor: "#e2e8f0" }}
-        >
-          <h4 className="text-lg font-bold mb-4" style={{ color: "#0D5C63" }}>
-            Parish Admin
-          </h4>
-
-          {parishAdmin ? (
-            <div className="flex items-center justify-between gap-4 p-4 rounded-lg" style={{ backgroundColor: "#f8fafc" }}>
-              <div>
-                <p className="font-semibold" style={{ color: "#2c3338" }}>{parishAdmin.name}</p>
-                <p className="text-sm text-slate-500">{parishAdmin.phone ?? "No phone"}</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleRemoveAdmin}
-                disabled={removeAdmin.isPending}
-                className="px-4 py-2 rounded-lg font-semibold text-sm border transition-all disabled:opacity-60"
-                style={{ borderColor: "#a83836", color: "#a83836" }}
-              >
-                {removeAdmin.isPending ? "Removing…" : "Remove"}
-              </button>
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500 mb-4">No admin assigned yet.</p>
-          )}
-
-          <form className="space-y-4 mt-6" onSubmit={adminForm.handleSubmit}>
-            <h5 className="text-sm font-bold uppercase tracking-wider text-slate-500">
-              {parishAdmin ? "Replace Admin" : "Assign Admin"}
-            </h5>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Name <span style={{ color: "#a83836" }}>*</span>
-                </label>
-                <input
-                  className="w-full px-4 py-3 rounded-lg border outline-none transition-all"
-                  style={{
-                    borderColor:
-                      adminForm.touched.name && adminForm.errors.name ? "#a83836" : "#e2e8f0",
-                  }}
-                  name="name"
-                  type="text"
-                  value={adminForm.values.name}
-                  onChange={adminForm.handleChange}
-                  onBlur={adminForm.handleBlur}
-                />
-                {adminForm.touched.name && adminForm.errors.name && (
-                  <p className="text-xs mt-1" style={{ color: "#a83836" }}>
-                    {adminForm.errors.name}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Phone <span style={{ color: "#a83836" }}>*</span>
-                </label>
-                <input
-                  className="w-full px-4 py-3 rounded-lg border outline-none transition-all"
-                  style={{
-                    borderColor:
-                      adminForm.touched.phone && adminForm.errors.phone ? "#a83836" : "#e2e8f0",
-                  }}
-                  name="phone"
-                  type="tel"
-                  value={adminForm.values.phone}
-                  onChange={adminForm.handleChange}
-                  onBlur={adminForm.handleBlur}
-                />
-                {adminForm.touched.phone && adminForm.errors.phone && (
-                  <p className="text-xs mt-1" style={{ color: "#a83836" }}>
-                    {adminForm.errors.phone}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={adminForm.isSubmitting}
-                className="text-slate-900 font-bold px-6 py-3 rounded-lg shadow-md hover:shadow-xl active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ backgroundColor: "#F59E0B" }}
-              >
-                {adminForm.isSubmitting ? "Saving…" : parishAdmin ? "Replace Admin" : "Assign Admin"}
-              </button>
-            </div>
-          </form>
-        </section>
-      </div>
-
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 mx-4">
-            <h4 className="text-lg font-bold" style={{ color: "#a83836" }}>
-              Delete Parish
-            </h4>
-            <p className="text-sm text-slate-600 mt-2">
-              Are you sure you want to delete <strong>{parish.name}</strong>? This action cannot be
-              undone. The parish admin will also be removed.
-            </p>
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 rounded-lg font-semibold text-sm border transition-all"
-                style={{ borderColor: "#e2e8f0", color: "#0D5C63" }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleteParish.isPending}
-                className="px-4 py-2 rounded-lg font-semibold text-sm text-white transition-all disabled:opacity-60"
-                style={{ backgroundColor: "#a83836" }}
-              >
-                {deleteParish.isPending ? "Deleting…" : "Delete"}
-              </button>
-            </div>
-          </div>
+            <span className="material-symbols-outlined text-[20px]">login</span>
+            Work in this parish
+          </button>
+        </div>
+      }
+    >
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-lg text-sm font-medium" style={{ backgroundColor: "#fee2e2", color: "#991b1b" }}>
+          {error}
         </div>
       )}
-    </main>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <StatCard label="Families" value={stats.familyCount.toLocaleString()} icon="home" />
+        <StatCard label="Members" value={stats.memberCount.toLocaleString()} icon="groups" />
+        <StatCard label="Mandalams" value={stats.mandalamCount} icon="account_tree" />
+        <StatCard label="Anbiyams" value={stats.anbiyamCount} icon="hub" />
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 space-y-4">
+          <FormCard
+            title="Census backlog"
+            description="What the parish still has to work through. Both are expected to be high on a freshly seeded parish."
+          >
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="rounded-lg p-4" style={{ backgroundColor: "#fff7ed" }}>
+                <p className="text-2xl font-black" style={{ color: "#9a3412" }}>
+                  {stats.unverifiedCount.toLocaleString()}
+                </p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Families not yet verified at the door
+                </p>
+              </div>
+              <div className="rounded-lg p-4" style={{ backgroundColor: "#eff6ff" }}>
+                <p className="text-2xl font-black" style={{ color: "#1e40af" }}>
+                  {stats.incompleteCount.toLocaleString()}
+                </p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Families whose member list is incomplete
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              A seeded family carries only its head and spouse. Until a visit fills in the rest,
+              an incomplete family is indistinguishable from a small one by count alone — which is
+              why completeness is recorded rather than inferred.
+            </p>
+          </FormCard>
+
+          <FormCard title="Accounts and content">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-center">
+              {[
+                { label: "Staff", value: stats.staffCount, href: `/parishes/${parishId}/staff` },
+                { label: "Parishioners", value: stats.parishionerCount },
+                { label: "Legacy cards", value: stats.legacyCardCount },
+                { label: "Announcements", value: stats.announcementCount },
+                { label: "Events", value: stats.eventCount },
+                { label: "Reports", value: stats.reportCount },
+              ].map((s) => {
+                const body = (
+                  <div className="rounded-lg py-3" style={{ backgroundColor: "#f8fafc" }}>
+                    <p className="font-black" style={{ color: "#0D5C63" }}>
+                      {s.value.toLocaleString()}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                      {s.label}
+                    </p>
+                  </div>
+                );
+                return s.href ? (
+                  <Link key={s.label} href={s.href}>{body}</Link>
+                ) : (
+                  <div key={s.label}>{body}</div>
+                );
+              })}
+            </div>
+          </FormCard>
+        </div>
+
+        <div className="space-y-4">
+          <FormCard title="Parish priest">
+            {stats.parishAdmin ? (
+              <div>
+                <p className="font-bold" style={{ color: "#0D5C63" }}>{stats.parishAdmin.name}</p>
+                <p className="text-sm text-slate-500">{stats.parishAdmin.phone ?? "No phone"}</p>
+                <div className="mt-2">
+                  <StatusPill
+                    label={stats.parishAdmin.status === "active" ? "Registered" : "Awaiting first login"}
+                    tone={stats.parishAdmin.status === "active" ? "success" : "warning"}
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">
+                None assigned. Nobody here can approve a change request yet.
+              </p>
+            )}
+            <Link href={`/parishes/${parishId}/staff`} className="text-sm font-bold" style={{ color: "#0D5C63" }}>
+              Manage staff →
+            </Link>
+          </FormCard>
+
+          <FormCard title="Manage">
+            <div className="flex flex-col gap-2 text-sm font-bold" style={{ color: "#0D5C63" }}>
+              <Link href={`/parishes/${parishId}/edit`}>Edit parish details →</Link>
+              <Link href={`/parishes/${parishId}/settings`}>Pastoral settings →</Link>
+              <Link href={`/system/audit?parish_id=${parishId}`}>Audit log →</Link>
+            </div>
+          </FormCard>
+
+          <FormCard title="Danger zone">
+            <p className="text-xs text-slate-500">
+              A parish can only be deleted while nothing references it. With {stats.familyCount}{" "}
+              families it will refuse, and say so.
+            </p>
+            <ConfirmDialog
+              trigger={
+                <button className="text-sm font-bold" style={{ color: "#dc2626" }}>
+                  Delete this parish
+                </button>
+              }
+              title={`Delete ${parish.name}?`}
+              message="This cannot be undone. Type the parish code to confirm."
+              confirmLabel="Delete parish"
+              requireTyping={parish.code}
+              onConfirm={async () => {
+                const res = await deleteParish.mutateAsync(parishId);
+                if (!res.success) setError(res.message);
+                else router.push("/global-dashboard");
+              }}
+            />
+          </FormCard>
+        </div>
+      </div>
+    </PageShell>
   );
 }
