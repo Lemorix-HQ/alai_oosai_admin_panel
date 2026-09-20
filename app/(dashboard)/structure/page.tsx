@@ -40,7 +40,7 @@ function AnbiyamChip({ a, onEdit, canEdit }: { a: Anbiyam; onEdit: () => void; c
           {a.name_ta ? ` · ${a.name_ta}` : a.name ? ` · ${a.name}` : ""}
         </p>
         <p className="text-[11px] text-slate-500">
-          {(a.family_count ?? 0).toLocaleString()} families
+          {(a.family_count ?? 0).toLocaleString()} {a.family_count === 1 ? "family" : "families"}
           {a.meeting_day ? ` · ${a.meeting_day}` : ""}
         </p>
       </div>
@@ -157,7 +157,7 @@ export default function StructurePage() {
                     <span className="font-mono text-sm">{m.code}</span> {m.name}
                   </h2>
                   <p className="text-xs text-slate-500">
-                    {m.anbiyams.length} Anbiyams ·{" "}
+                    {m.anbiyams.length} {m.anbiyams.length === 1 ? "Anbiyam" : "Anbiyams"} ·{" "}
                     {m.anbiyams.reduce((a, x) => a + (x.family_count ?? 0), 0).toLocaleString()} families
                     {m.patron_saint ? ` · ${m.patron_saint}` : ""}
                   </p>
