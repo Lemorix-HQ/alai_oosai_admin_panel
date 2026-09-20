@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   const payload = await getAdminPayload();
 
   // Super admin without a selected parish must pick one (or create one) first.
-  if (payload?.role === "super_admin" && !payload.parish_id) {
+  if (payload?.account_type === "super_admin" && !payload.parish_id) {
     const parishesRes = await listParishesAction();
     const parishes = parishesRes.data ?? [];
     redirect(parishes.length === 0 ? "/create-parish" : "/select-parish");

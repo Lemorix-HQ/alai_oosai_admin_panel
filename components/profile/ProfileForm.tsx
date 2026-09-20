@@ -8,11 +8,12 @@ interface ProfileFormProps {
   userId: string;
   initialName: string;
   phone: string;
-  role: string;
+  /** Role names if any, otherwise the account type. See src/lib/labels.ts */
+  roleLabel: string;
   parishName?: string | null;
 }
 
-export default function ProfileForm({ userId, initialName, phone, role, parishName }: ProfileFormProps) {
+export default function ProfileForm({ userId, initialName, phone, roleLabel, parishName }: ProfileFormProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -116,7 +117,7 @@ export default function ProfileForm({ userId, initialName, phone, role, parishNa
               }}
               readOnly
               type="text"
-              value={role === "super_admin" ? "Super Admin" : "Parish Admin"}
+              value={roleLabel}
             />
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
               lock

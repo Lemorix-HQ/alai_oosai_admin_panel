@@ -1,26 +1,15 @@
-import { cookies } from "next/headers";
-import { jwtDecode } from "jwt-decode";
-import { JwtPayload } from "@/src/types";
 import { getParishNameAction } from "@/src/actions/parishes.actions";
+import { getSession } from "@/src/session/session";
 import ProfileForm from "@/components/profile/ProfileForm";
-
-async function getProfile(): Promise<{ payload: JwtPayload | null; parishName: string | null }> {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("admin_token")?.value;
-    if (!token) return { payload: null, parishName: null };
-    const payload = jwtDecode<JwtPayload>(token);
-    const parishName = payload.parish_id
-      ? await getParishNameAction(payload.parish_id)
-      : null;
-    return { payload, parishName };
-  } catch {
-    return { payload: null, parishName: null };
-  }
-}
+import { displayRole } from "@/src/lib/labels";
 
 export default async function ProfilePage() {
-  const { payload: profile, parishName } = await getProfile();
+  // Reads the session rather than decoding the JWT, so permissions and roles
+  // reflect assignments made after the token was issued.
+  const profile = await getSession();
+  const parishName = profile?.parish_id
+    ? await getParishNameAction(profile.parish_id)
+    : null;
 
   const initials = profile?.name
     ? profile.name
@@ -59,7 +48,7 @@ export default async function ProfilePage() {
                 {profile?.name ?? "Admin"}
               </h3>
               <p className="font-medium" style={{ color: "#596065" }}>
-                @{profile?.role ?? "parish_admin"}
+                @{profile?.phone ?? ""}
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2 mt-2">
@@ -67,7 +56,7 @@ export default async function ProfilePage() {
                 className="px-3 py-1 rounded-full text-xs font-bold"
                 style={{ backgroundColor: "#abeef6", color: "#0a5b62" }}
               >
-                {profile?.role === "super_admin" ? "Super Admin" : "Parish Admin"}
+                {displayRole(profile)}
               </span>
               {parishName && (
                 <span
@@ -83,10 +72,10 @@ export default async function ProfilePage() {
           {/* Right Side: Form Area */}
           <div className="flex-1">
             <ProfileForm
-              userId={profile?.sub ?? ""}
+              userId={profile?.id ?? ""}
               initialName={profile?.name ?? ""}
               phone={profile?.phone ?? ""}
-              role={profile?.role ?? "parish_admin"}
+              roleLabel={displayRole(profile)}
               parishName={parishName}
             />
           </div>
@@ -111,7 +100,7 @@ export default async function ProfilePage() {
                 Role
               </span>
               <span className="font-semibold text-sm" style={{ color: "#2c3338" }}>
-                {profile?.role === "super_admin" ? "Super Admin" : "Parish Admin"}
+                {displayRole(profile)}
               </span>
             </div>
             <div className="flex flex-col">

@@ -11,7 +11,7 @@ async function ensureSuperAdmin() {
   if (!token) redirect("/login");
   try {
     const payload = jwtDecode<JwtPayload>(token!);
-    if (payload.role !== "super_admin") redirect("/");
+    if (payload.account_type !== "super_admin") redirect("/");
   } catch {
     redirect("/login");
   }
