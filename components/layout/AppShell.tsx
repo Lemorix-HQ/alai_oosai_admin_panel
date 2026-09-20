@@ -32,9 +32,9 @@ export default function AppShell({
         parishes={parishes}
         onMenuClick={() => setMenuOpen(true)}
       />
-      <main className="lg:ml-64 pt-16 min-h-screen">
-        <div className="p-4 sm:p-6">{children}</div>
-      </main>
+      {/* No padding here: existing pages bring their own, and new pages use
+          PageShell. Adding it in both places double-pads every screen. */}
+      <main className="lg:ml-64 pt-16 min-h-screen">{children}</main>
     </div>
   );
 }
