@@ -1,7 +1,24 @@
 'use server';
 import { cookies } from 'next/headers';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+/**
+ * Where the API lives, as seen from THIS PROCESS.
+ *
+ * Every call in this file runs on the server — the module is 'use server' and
+ * reads cookies() — so the address that matters is the one the Next server can
+ * reach, not the one the browser can. Under Docker those differ: the browser
+ * talks to the published http://localhost:3000, while inside the admin
+ * container `localhost` is the admin container itself and the API is at
+ * http://api:3000.
+ *
+ * API_URL is therefore read first, at runtime. NEXT_PUBLIC_API_URL is kept as
+ * the fallback for local development, where the two addresses happen to be the
+ * same — but it is the wrong tool for this job: the NEXT_PUBLIC_ prefix means
+ * it is inlined at BUILD time, so it cannot describe a network the image is
+ * later run on.
+ */
+const API_BASE =
+  process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 export type ApiResponse<T = unknown> = {
   success: boolean;
   message: string;
@@ -57,7 +74,17 @@ async function request<TPayload, TResponse>(
 
     return raw as ApiResponse<TResponse>;
   } catch (e: unknown) {
-    return { success: false, message: (e as Error).message || 'Network error' };
+    // undici says only "fetch failed" when it cannot connect, which tells the
+    // user nothing about which address failed — and the browser never sees this
+    // request at all, so its network tab cannot tell them either.
+    const detail = (e as Error).message || 'Network error';
+    const unreachable = /fetch failed|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|timeout/i.test(detail);
+    return {
+      success: false,
+      message: unreachable
+        ? `Cannot reach the API at ${API_BASE} (${detail}). Check that it is running and that this address is correct from inside this process.`
+        : detail,
+    };
   }
 }
 
