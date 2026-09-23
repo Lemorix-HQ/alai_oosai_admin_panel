@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PageShell from "@/components/ui/PageShell";
-import { Field, FormActions, FormCard, Select, TextArea, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, FormCard, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
 import StatusPill from "@/components/ui/StatusPill";
 import { useCreateFamily } from "@/hooks/useFamilies";
 import { useAnbiyams, useNextSerial } from "@/hooks/useStructure";
@@ -124,13 +124,13 @@ export default function NewFamilyPage() {
               <TextInput value={v.head_name} onChange={(e) => setV({ ...v, head_name: e.target.value })} />
             </Field>
             <Field label="Head — name in Tamil">
-              <TextInput value={v.head_name_ta} onChange={(e) => setV({ ...v, head_name_ta: e.target.value })} />
+              <TamilTextInput value={v.head_name_ta} onChange={(e) => setV({ ...v, head_name_ta: e.target.value })} />
             </Field>
             <Field label="Spouse — name">
               <TextInput value={v.spouse_name} onChange={(e) => setV({ ...v, spouse_name: e.target.value })} />
             </Field>
             <Field label="Spouse — name in Tamil">
-              <TextInput value={v.spouse_name_ta} onChange={(e) => setV({ ...v, spouse_name_ta: e.target.value })} />
+              <TamilTextInput value={v.spouse_name_ta} onChange={(e) => setV({ ...v, spouse_name_ta: e.target.value })} />
             </Field>
           </div>
         </FormCard>
@@ -148,7 +148,7 @@ export default function NewFamilyPage() {
               />
             </Field>
             <Field label="Locality">
-              <TextInput value={v.locality} onChange={(e) => setV({ ...v, locality: e.target.value })} />
+              <TamilTextInput value={v.locality} onChange={(e) => setV({ ...v, locality: e.target.value })} />
             </Field>
             <Field label="Residence">
               <Select
@@ -163,7 +163,7 @@ export default function NewFamilyPage() {
             </Field>
           </div>
           <Field label="House note" hint="How to find the house — a landmark, not an address.">
-            <TextInput value={v.house_note} onChange={(e) => setV({ ...v, house_note: e.target.value })} />
+            <TamilTextInput value={v.house_note} onChange={(e) => setV({ ...v, house_note: e.target.value })} />
           </Field>
         </FormCard>
 
@@ -195,7 +195,7 @@ export default function NewFamilyPage() {
             ))}
           </div>
           <Field label="Notes">
-            <TextArea rows={3} value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
+            <TamilTextArea rows={3} value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
           </Field>
         </FormCard>
 

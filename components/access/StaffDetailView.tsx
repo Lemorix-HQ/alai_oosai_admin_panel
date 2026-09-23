@@ -3,7 +3,7 @@
 import { useState } from "react";
 import StatusPill from "@/components/ui/StatusPill";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { Field, FormActions, FormCard, Select, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, FormCard, Select, TamilTextInput } from "@/components/ui/Field";
 import { useAssignRole, useRevokeAssignment, useRoles, useStaffMember } from "@/hooks/useAccess";
 import { useAnbiyams, useMandalams } from "@/hooks/useStructure";
 import type { Anbiyam, Mandalam, Role, RoleAssignment } from "@/src/types";
@@ -251,7 +251,7 @@ export default function StaffDetailView({ userId }: { userId: string }) {
             )}
 
             <Field label="Note">
-              <TextInput
+              <TamilTextInput
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Why this was granted"

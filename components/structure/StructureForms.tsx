@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Field, FormActions, Select, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, Select, TamilTextInput, TextInput } from "@/components/ui/Field";
 import {
   useCreateAnbiyam,
   useCreateMandalam,
@@ -67,10 +67,10 @@ export function MandalamForm({
         />
       </Field>
       <Field label="Name in Tamil">
-        <TextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
+        <TamilTextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
       </Field>
       <Field label="Patron saint">
-        <TextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
+        <TamilTextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
       </Field>
       {substations.length > 0 && (
         <Field label="Substation" hint="Leave blank if this zone sits directly under the parish.">
@@ -175,7 +175,7 @@ export function AnbiyamForm({
         <TextInput value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} />
       </Field>
       <Field label="Name in Tamil">
-        <TextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
+        <TamilTextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
       </Field>
       <Field label="Mandalam" hint="Small parishes skip the zone level entirely.">
         <Select value={v.mandalam_id} onChange={(e) => setV({ ...v, mandalam_id: e.target.value })}>
@@ -188,7 +188,7 @@ export function AnbiyamForm({
         </Select>
       </Field>
       <Field label="Patron saint">
-        <TextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
+        <TamilTextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Meeting day">
@@ -204,7 +204,7 @@ export function AnbiyamForm({
         </Field>
       </div>
       <Field label="Meeting place">
-        <TextInput value={v.meeting_place} onChange={(e) => setV({ ...v, meeting_place: e.target.value })} />
+        <TamilTextInput value={v.meeting_place} onChange={(e) => setV({ ...v, meeting_place: e.target.value })} />
       </Field>
       <FormActions
         submitting={create.isPending || update.isPending}
@@ -258,10 +258,10 @@ export function SubstationForm({ initial, onDone }: { initial?: Substation; onDo
         />
       </Field>
       <Field label="Name in Tamil">
-        <TextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
+        <TamilTextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
       </Field>
       <Field label="Patron saint">
-        <TextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
+        <TamilTextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
       </Field>
       <FormActions
         submitting={create.isPending || update.isPending}

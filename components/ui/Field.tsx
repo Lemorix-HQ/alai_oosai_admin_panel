@@ -1,5 +1,8 @@
 "use client";
 
+import TamilInputBase from "@/components/ui/TamilInput";
+import TamilTextareaBase from "@/components/ui/TamilTextarea";
+
 /** Shared form field chrome so every form looks and behaves the same. */
 export function Field({
   label,
@@ -44,6 +47,60 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
 
 export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea {...props} className={`${baseInput} ${props.className ?? ""}`} style={{ borderColor: "#dce3e9", ...(props.style ?? {}) }} />;
+}
+
+/**
+ * The same chrome as `TextInput`, with Tamil transliteration wired in.
+ *
+ * `tamilMode` defaults to true because the usual caller is a field whose own
+ * label already declares the language — "Name in Tamil" next to a plain
+ * "Name in English". Those need no toggle: the box the priest types Tamil into
+ * is the box marked Tamil. Forms with a single language-agnostic name field
+ * pass `tamilMode` from a `LanguageToggle` instead.
+ */
+export function TamilTextInput({
+  tamilMode = true,
+  value,
+  onChange,
+  ...props
+}: Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value"> & {
+  tamilMode?: boolean;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <TamilInputBase
+      {...props}
+      tamilMode={tamilMode}
+      value={value}
+      onChange={onChange}
+      className={`${baseInput} ${props.className ?? ""}`}
+      style={{ borderColor: "#dce3e9", ...(props.style ?? {}) }}
+    />
+  );
+}
+
+/** `TextArea` with Tamil transliteration. See `TamilTextInput` for `tamilMode`. */
+export function TamilTextArea({
+  tamilMode = true,
+  value,
+  onChange,
+  ...props
+}: Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "onChange" | "value"> & {
+  tamilMode?: boolean;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+}) {
+  return (
+    <TamilTextareaBase
+      {...props}
+      tamilMode={tamilMode}
+      value={value}
+      onChange={onChange}
+      className={`${baseInput} ${props.className ?? ""}`}
+      style={{ borderColor: "#dce3e9", ...(props.style ?? {}) }}
+    />
+  );
 }
 
 export function FormActions({

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import PageShell from "@/components/ui/PageShell";
 import StatusPill from "@/components/ui/StatusPill";
-import { Field, FormActions, FormCard, Select, TextArea, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, FormCard, Select, TamilTextArea, TextInput } from "@/components/ui/Field";
 import { useFamily, useTransferFamily } from "@/hooks/useFamilies";
 import { useAnbiyams, useNextSerial } from "@/hooks/useStructure";
 import { cardNumber } from "@/src/lib/domain-labels";
@@ -150,7 +150,7 @@ export default function TransferFamilyPage({ params }: { params: Promise<{ id: s
           </Field>
 
           <Field label="Reason">
-            <TextArea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
+            <TamilTextArea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
           </Field>
         </FormCard>
 

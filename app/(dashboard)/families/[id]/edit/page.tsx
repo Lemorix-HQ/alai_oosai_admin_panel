@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import PageShell from "@/components/ui/PageShell";
-import { Field, FormActions, FormCard, Select, TextArea, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, FormCard, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
 import { useFamily, useUpdateFamily } from "@/hooks/useFamilies";
 import { PASTORAL_FLAG_LABEL } from "@/src/lib/domain-labels";
 import { PASTORAL_FLAGS, type FamilyDetail, type PastoralFlag } from "@/src/types";
@@ -128,13 +128,13 @@ function EditForm({ family }: { family: FamilyDetail }) {
             </Select>
           </Field>
           <Field label="Currently at" hint="Where they are now, if not in the parish.">
-            <TextInput value={v.current_place} onChange={(e) => setV({ ...v, current_place: e.target.value })} />
+            <TamilTextInput value={v.current_place} onChange={(e) => setV({ ...v, current_place: e.target.value })} />
           </Field>
           <Field label="Locality">
-            <TextInput value={v.locality} onChange={(e) => setV({ ...v, locality: e.target.value })} />
+            <TamilTextInput value={v.locality} onChange={(e) => setV({ ...v, locality: e.target.value })} />
           </Field>
           <Field label="House note">
-            <TextInput value={v.house_note} onChange={(e) => setV({ ...v, house_note: e.target.value })} />
+            <TamilTextInput value={v.house_note} onChange={(e) => setV({ ...v, house_note: e.target.value })} />
           </Field>
         </div>
       </FormCard>
@@ -142,13 +142,13 @@ function EditForm({ family }: { family: FamilyDetail }) {
       <FormCard title="Address">
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Line 1">
-            <TextInput value={v.line1} onChange={(e) => setV({ ...v, line1: e.target.value })} />
+            <TamilTextInput value={v.line1} onChange={(e) => setV({ ...v, line1: e.target.value })} />
           </Field>
           <Field label="Street">
-            <TextInput value={v.street} onChange={(e) => setV({ ...v, street: e.target.value })} />
+            <TamilTextInput value={v.street} onChange={(e) => setV({ ...v, street: e.target.value })} />
           </Field>
           <Field label="Town / village">
-            <TextInput value={v.town} onChange={(e) => setV({ ...v, town: e.target.value })} />
+            <TamilTextInput value={v.town} onChange={(e) => setV({ ...v, town: e.target.value })} />
           </Field>
           <Field label="District">
             <TextInput value={v.district} onChange={(e) => setV({ ...v, district: e.target.value })} />
@@ -187,7 +187,7 @@ function EditForm({ family }: { family: FamilyDetail }) {
           ))}
         </div>
         <Field label="Notes">
-          <TextArea rows={3} value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
+          <TamilTextArea rows={3} value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
         </Field>
       </FormCard>
 

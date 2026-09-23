@@ -7,7 +7,8 @@ import FilterBar from "@/components/ui/FilterBar";
 import ResourceTable, { type Column } from "@/components/ui/ResourceTable";
 import StatusPill from "@/components/ui/StatusPill";
 import SlideOver from "@/components/ui/SlideOver";
-import { Field, FormActions, Select, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, Select, TamilTextInput, TextInput } from "@/components/ui/Field";
+import LanguageToggle from "@/components/ui/LanguageToggle";
 import { PermissionGate } from "@/src/session/PermissionGate";
 import { P } from "@/src/session/permissions";
 import { useCreateStaff, useRoles, useStaff } from "@/hooks/useAccess";
@@ -29,6 +30,9 @@ function NewStaffForm({ onDone }: { onDone: () => void }) {
 
   const [v, setV] = useState({ name: "", phone: "", email: "", role_id: "" });
   const [error, setError] = useState<string | null>(null);
+  // One name field, either language — so the form carries the toggle rather
+  // than the field deciding for itself.
+  const [tamilMode, setTamilMode] = useState(true);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,8 +51,13 @@ function NewStaffForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      <LanguageToggle tamilMode={tamilMode} onToggle={() => setTamilMode(!tamilMode)} />
       <Field label="Name" required>
-        <TextInput value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} />
+        <TamilTextInput
+          tamilMode={tamilMode}
+          value={v.name}
+          onChange={(e) => setV({ ...v, name: e.target.value })}
+        />
       </Field>
       <Field label="Phone" required hint="This is the number they log in with. One phone, one person.">
         <TextInput value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} />

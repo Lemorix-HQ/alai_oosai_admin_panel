@@ -6,7 +6,8 @@ import PageShell from "@/components/ui/PageShell";
 import ResourceTable, { type Column } from "@/components/ui/ResourceTable";
 import StatusPill from "@/components/ui/StatusPill";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { Field, FormActions, FormCard, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, FormCard, TamilTextInput, TextInput } from "@/components/ui/Field";
+import LanguageToggle from "@/components/ui/LanguageToggle";
 import { useAssignParishAdmin, useParishStats, useRemoveParishAdmin } from "@/hooks/useParishes";
 import { useStaff } from "@/hooks/useAccess";
 import type { RoleAssignment, StaffUser } from "@/src/types";
@@ -28,6 +29,8 @@ export default function ParishStaffPage({ params }: { params: Promise<{ id: stri
   const [form, setForm] = useState({ name: "", phone: "" });
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // One name field, either language — the toggle belongs to the form.
+  const [tamilMode, setTamilMode] = useState(true);
 
   const stats = statsRes?.data;
   const priest = stats?.parishAdmin ?? null;
@@ -118,8 +121,10 @@ export default function ParishStaffPage({ params }: { params: Promise<{ id: stri
 
           <form onSubmit={submit}>
             <FormCard title={priest ? "Replace the priest" : "Assign a priest"}>
+              <LanguageToggle tamilMode={tamilMode} onToggle={() => setTamilMode(!tamilMode)} />
               <Field label="Name" required>
-                <TextInput
+                <TamilTextInput
+                  tamilMode={tamilMode}
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 />

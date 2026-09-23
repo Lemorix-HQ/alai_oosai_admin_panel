@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Field, FormActions, FormCard, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, FormCard, TamilTextInput, TextInput } from "@/components/ui/Field";
 import type { Parish } from "@/src/types";
 import type { ParishPayload } from "@/actions/parishes.actions";
 
@@ -115,10 +115,10 @@ export default function ParishForm({
             />
           </Field>
           <Field label="Name in Tamil">
-            <TextInput value={values.name_ta} onChange={set("name_ta")} placeholder="புனித லூர்து அன்னை ஆலயம்" />
+            <TamilTextInput value={values.name_ta} onChange={set("name_ta")} placeholder="புனித லூர்து அன்னை ஆலயம்" />
           </Field>
           <Field label="Patron saint">
-            <TextInput value={values.patron_saint} onChange={set("patron_saint")} />
+            <TamilTextInput value={values.patron_saint} onChange={set("patron_saint")} />
           </Field>
           <Field label="Diocese">
             <TextInput value={values.diocese} onChange={set("diocese")} />
@@ -152,7 +152,7 @@ export default function ParishForm({
             <TextInput value={values.street} onChange={set("street")} />
           </Field>
           <Field label="Town / village">
-            <TextInput value={values.town} onChange={set("town")} />
+            <TamilTextInput value={values.town} onChange={set("town")} />
           </Field>
           <Field label="Taluk">
             <TextInput value={values.taluk} onChange={set("taluk")} />

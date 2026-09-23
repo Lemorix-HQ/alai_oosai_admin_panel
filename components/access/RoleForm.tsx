@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Field, FormActions, FormCard, Select, TextArea, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, FormCard, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
 import { usePermissionCatalogue } from "@/hooks/useAccess";
 import type { ApiResponse, Role } from "@/src/types";
 import type { RolePayload } from "@/actions/access.actions";
@@ -136,7 +136,7 @@ export default function RoleForm({
             />
           </Field>
           <Field label="Name in Tamil">
-            <TextInput
+            <TamilTextInput
               value={values.name_ta}
               onChange={(e) => setValues((v) => ({ ...v, name_ta: e.target.value }))}
             />
@@ -158,7 +158,7 @@ export default function RoleForm({
           </Field>
         </div>
         <Field label="Description">
-          <TextArea
+          <TamilTextArea
             rows={2}
             value={values.description}
             onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))}

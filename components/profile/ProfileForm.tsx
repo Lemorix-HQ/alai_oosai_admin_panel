@@ -3,6 +3,8 @@
 import { useFormik } from "formik";
 import { useState } from "react";
 import { updateUserNameAction } from "@/src/actions/users.actions";
+import TamilInput from "@/components/ui/TamilInput";
+import LanguageToggle from "@/components/ui/LanguageToggle";
 
 interface ProfileFormProps {
   userId: string;
@@ -16,6 +18,8 @@ interface ProfileFormProps {
 export default function ProfileForm({ userId, initialName, phone, roleLabel, parishName }: ProfileFormProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  // The display name is one field in either language, so the form toggles.
+  const [tamilMode, setTamilMode] = useState(true);
 
   const formik = useFormik({
     initialValues: { name: initialName },
@@ -44,6 +48,8 @@ export default function ProfileForm({ userId, initialName, phone, roleLabel, par
 
   return (
     <form className="space-y-6" onSubmit={formik.handleSubmit}>
+      <LanguageToggle tamilMode={tamilMode} onToggle={() => setTamilMode(!tamilMode)} />
+
       {successMsg && (
         <div
           className="p-3 rounded-lg text-sm font-medium"
@@ -66,7 +72,8 @@ export default function ProfileForm({ userId, initialName, phone, roleLabel, par
           <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "#596065" }}>
             Display Name
           </label>
-          <input
+          <TamilInput
+            tamilMode={tamilMode}
             className="w-full px-4 py-3 rounded-lg border font-medium outline-none transition-all"
             style={{
               borderColor: formik.touched.name && formik.errors.name ? "#a83836" : "#abb3b9",
