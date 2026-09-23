@@ -31,7 +31,12 @@ export const P = {
     delete: 'member.delete',
   },
   visit: { read: 'visit.read', record: 'visit.record', roundManage: 'visit.round.manage' },
-  request: { raise: 'request.raise', verify: 'request.verify', approve: 'request.approve' },
+  request: {
+    read: 'request.read',
+    raise: 'request.raise',
+    verify: 'request.verify',
+    approve: 'request.approve',
+  },
   register: {
     read: 'register.read',
     create: 'register.create',

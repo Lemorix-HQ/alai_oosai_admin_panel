@@ -328,3 +328,105 @@ export interface ParishStatsDetail {
   /** Retained for the existing cards; equals memberCount. */
   userCount: number;
 }
+
+// -------------------------------------------------------------------- visits
+
+/** One visit the priest makes to one Anbiyam. */
+export interface VisitRound {
+  _id: string;
+  parish_id: string;
+  anbiyam_id: Ref<Pick<Anbiyam, '_id' | 'code' | 'name' | 'name_ta'>>;
+  label?: string | null;
+  round_date: string;
+  completed_on?: string | null;
+  /**
+   * Stored, not counted live: it describes the Anbiyam as it stood in this
+   * round. Recomputing it would rewrite the parish's own record every time a
+   * family is added.
+   */
+  total_families?: number | null;
+  verified_count: number;
+  led_by?: string | null;
+  status: 'open' | 'complete';
+  notes?: string;
+  createdAt?: string;
+}
+
+export const VISIT_OUTCOMES = [
+  'verified',
+  'visited',
+  'not_available',
+  'refused',
+  'locked',
+  'moved',
+] as const;
+export type VisitOutcome = (typeof VISIT_OUTCOMES)[number];
+
+export interface FamilyVisit {
+  _id: string;
+  parish_id: string;
+  anbiyam_id: Ref<Pick<Anbiyam, '_id' | 'code' | 'name_ta'>>;
+  family_id: Ref<Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone'>>;
+  round_id?: string | null;
+  visit_date: string;
+  visited_by_user_id?: string | null;
+  visited_by_name?: string;
+  outcome: VisitOutcome;
+  notes?: string;
+  follow_up_flags: string[];
+  acknowledged_by_member_id?: string | null;
+  acknowledgement?: string;
+  createdAt?: string;
+}
+
+/** GET /visit-rounds/:id — the round, what was done, and what is left. */
+export interface VisitRoundDetail extends VisitRound {
+  visits: FamilyVisit[];
+  outstanding: Array<
+    Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone' | 'verification_status'>
+  >;
+}
+
+// ----------------------------------------------------------- change requests
+
+export const CHANGE_REQUEST_TYPES = [
+  'add_member',
+  'split_family',
+  'join_family',
+  'transfer_family',
+  'update_details',
+  'mark_deceased',
+] as const;
+export type ChangeRequestType = (typeof CHANGE_REQUEST_TYPES)[number];
+
+export type ChangeRequestStatus =
+  | 'pending'
+  | 'under_verification'
+  | 'approved'
+  | 'rejected'
+  | 'applied'
+  | 'cancelled';
+
+export interface ChangeRequest {
+  _id: string;
+  parish_id: string;
+  family_id?: Ref<Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone'>> | null;
+  anbiyam_id?: Ref<Pick<Anbiyam, '_id' | 'code' | 'name' | 'name_ta'>> | null;
+  type: ChangeRequestType;
+  requested_by_user_id?: string | null;
+  requested_by_member_id?: string | null;
+  requester_name?: string;
+  requester_phone?: string;
+  payload: Record<string, unknown>;
+  reason?: string;
+  attachments: string[];
+  status: ChangeRequestStatus;
+  verified_by?: string | null;
+  verified_on?: string | null;
+  approved_by?: string | null;
+  approved_on?: string | null;
+  decision_note?: string;
+  resulting_family_id?: string | null;
+  resulting_member_id?: string | null;
+  createdAt?: string;
+}

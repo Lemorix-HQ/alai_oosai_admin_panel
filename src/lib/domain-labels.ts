@@ -81,3 +81,50 @@ export function ageFrom(dob?: string | null): number | null {
   if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age -= 1;
   return age >= 0 && age < 130 ? age : null;
 }
+
+export const VISIT_OUTCOME_LABEL: Record<string, string> = {
+  verified: "Verified",
+  visited: "Visited, not settled",
+  not_available: "Nobody home",
+  refused: "Refused",
+  locked: "House locked",
+  moved: "Moved away",
+};
+
+export function visitOutcomeTone(outcome: string): "success" | "warning" | "danger" | "neutral" {
+  if (outcome === "verified") return "success";
+  if (outcome === "visited") return "warning";
+  if (outcome === "refused" || outcome === "moved") return "danger";
+  return "neutral";
+}
+
+export const CHANGE_REQUEST_TYPE_LABEL: Record<string, string> = {
+  add_member: "Add a member",
+  split_family: "Split a family",
+  join_family: "Join a family",
+  transfer_family: "Transfer a family",
+  update_details: "Correct details",
+  mark_deceased: "Record a death",
+};
+
+export const REQUEST_STATUS_LABEL: Record<string, string> = {
+  pending: "Awaiting verification",
+  under_verification: "Verified, awaiting approval",
+  approved: "Approved, not yet applied",
+  applied: "Applied",
+  rejected: "Rejected",
+  cancelled: "Cancelled",
+};
+
+export function requestStatusTone(status: string): "success" | "warning" | "danger" | "info" | "neutral" {
+  if (status === "applied") return "success";
+  if (status === "approved") return "info";
+  if (status === "pending" || status === "under_verification") return "warning";
+  if (status === "rejected") return "danger";
+  return "neutral";
+}
+
+/** "37 / 46" — verified families over the Anbiyam's total, as the passbook writes it. */
+export function roundProgress(verified: number, total?: number | null) {
+  return total ? `${verified} / ${total}` : String(verified);
+}

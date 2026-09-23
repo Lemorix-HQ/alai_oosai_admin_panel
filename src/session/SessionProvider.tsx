@@ -13,6 +13,8 @@ interface SessionContextValue {
   canAll: (...permissions: string[]) => boolean;
   /** True when no assignment narrows the user to particular Mandalams/Anbiyams. */
   parishWide: boolean;
+  /** Where the user may act. Empty lists mean parish-wide. */
+  scope: { mandalam_ids: string[]; anbiyam_ids: string[] };
 }
 
 const SessionContext = createContext<SessionContextValue>({
@@ -21,6 +23,7 @@ const SessionContext = createContext<SessionContextValue>({
   canAny: () => false,
   canAll: () => false,
   parishWide: false,
+  scope: { mandalam_ids: [], anbiyam_ids: [] },
 });
 
 export function SessionProvider({
@@ -38,6 +41,10 @@ export function SessionProvider({
       canAny: (...ps) => ps.some((p) => held.has(p)),
       canAll: (...ps) => ps.every((p) => held.has(p)),
       parishWide: user?.scope?.parish_wide ?? false,
+      scope: {
+        mandalam_ids: user?.scope?.mandalam_ids ?? [],
+        anbiyam_ids: user?.scope?.anbiyam_ids ?? [],
+      },
     };
   }, [user]);
 

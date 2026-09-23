@@ -34,6 +34,8 @@ export const NAVIGATION: NavSection[] = [
       { href: '/structure', icon: 'account_tree', label: 'Structure', anyOf: [P.structure.mandalam, P.structure.anbiyam, P.family.read] },
       { href: '/families', icon: 'home', label: 'Families', anyOf: [P.family.read] },
       { href: '/members', icon: 'groups', label: 'Members', anyOf: [P.member.read] },
+      { href: '/visits', icon: 'directions_walk', label: 'Visits', anyOf: [P.visit.read] },
+      { href: '/requests', icon: 'how_to_reg', label: 'Change Requests', anyOf: [P.request.read] },
     ],
   },
   {
