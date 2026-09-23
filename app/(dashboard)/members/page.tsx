@@ -96,9 +96,7 @@ function MembersList() {
           <ResourceTable
             rows={rows}
             columns={columns}
-            rowHref={(m) =>
-              typeof m.family_id === "string" ? `/families/${m.family_id}` : `/families/${m.family_id._id}`
-            }
+            rowHref={(m) => `/members/${m._id}/edit`}
             empty={{
               icon: "groups",
               title: "No members match",

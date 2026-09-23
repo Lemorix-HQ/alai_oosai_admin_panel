@@ -126,6 +126,12 @@ export async function addMemberAction(familyId: string, payload: MemberPayload) 
   return postRequest<MemberPayload, Member>(`/families/${familyId}/members`, payload);
 }
 
+export async function getMemberAction(id: string) {
+  return getRequest<undefined, Member & { family_id: { _id: string; family_code: string } }>(
+    `/members/${id}`,
+  );
+}
+
 export async function listMembersAction(query: FamilyQuery = {}) {
   return getRequest<FamilyQuery, Paged<Member>>('/members', query);
 }

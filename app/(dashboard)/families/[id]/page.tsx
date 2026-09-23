@@ -46,6 +46,11 @@ function MemberRow({ m, familyId, canEdit }: { m: Member; familyId: string; canE
         {m.status !== "active" && (
           <StatusPill label={MEMBER_STATUS_LABEL[m.status] ?? m.status} tone="neutral" />
         )}
+        <PermissionGate permission={P.member.update}>
+          <Link href={`/members/${m._id}/edit`} className="text-xs font-bold" style={{ color: "#0D5C63" }}>
+            Edit
+          </Link>
+        </PermissionGate>
         {canEdit && (
           <ConfirmDialog
             trigger={<button className="text-xs font-bold" style={{ color: "#dc2626" }}>Remove</button>}

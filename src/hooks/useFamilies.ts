@@ -6,6 +6,7 @@ import {
   closeFamilyAction,
   createFamilyAction,
   getFamilyAction,
+  getMemberAction,
   listFamiliesAction,
   listMembersAction,
   removeMemberAction,
@@ -32,6 +33,14 @@ export function useFamily(id: string) {
   return useQuery({
     queryKey: ['family', id],
     queryFn: () => getFamilyAction(id),
+    enabled: !!id,
+  });
+}
+
+export function useMember(id: string) {
+  return useQuery({
+    queryKey: ['member', id],
+    queryFn: () => getMemberAction(id),
     enabled: !!id,
   });
 }
@@ -117,9 +126,10 @@ export function useUpdateMember(familyId?: string) {
       id: string;
       payload: Partial<MemberPayload> & { status?: string };
     }) => updateMemberAction(id, payload),
-    onSuccess: () => {
+    onSuccess: (_res, { id }) => {
       if (familyId) qc.invalidateQueries({ queryKey: ['family', familyId] });
       qc.invalidateQueries({ queryKey: ['members'] });
+      qc.invalidateQueries({ queryKey: ['member', id] });
     },
   });
 }
