@@ -21,11 +21,13 @@ import {
   type UpdateFamilyPayload,
 } from '@/actions/families.actions';
 
-export function useFamilies(query: FamilyQuery = {}) {
+/** `enabled: false` holds the request back — used by search boxes with nothing typed yet. */
+export function useFamilies(query: FamilyQuery = {}, options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: ['families', query],
     queryFn: () => listFamiliesAction(query),
     staleTime: 30 * 1000,
+    enabled: options.enabled ?? true,
   });
 }
 
@@ -97,7 +99,10 @@ export function useCloseFamily(id: string) {
   return useMutation({
     mutationFn: (payload: CloseFamilyPayload) => closeFamilyAction(id, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['family', id] });
+      // Every family card, not just this one: a merge that moves the members
+      // changes the destination's card as much as it changes this one.
+      qc.invalidateQueries({ queryKey: ['family'] });
+      qc.invalidateQueries({ queryKey: ['members'] });
       qc.invalidateQueries({ queryKey: ['families'] });
       qc.invalidateQueries({ queryKey: ['anbiyams'] });
       qc.invalidateQueries({ queryKey: ['structure'] });

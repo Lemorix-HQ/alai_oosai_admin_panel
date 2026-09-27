@@ -61,11 +61,6 @@ export default function TamilInput({
     }
   }, [tamilMode]);
 
-  // Reset active index when suggestions change
-  useEffect(() => {
-    setActiveIndex(-1);
-  }, [suggestions]);
-
   // Scroll active item into view
   useEffect(() => {
     if (activeIndex >= 0 && listRef.current) {
@@ -90,6 +85,11 @@ export default function TamilInput({
       const results = await fetchSuggestions(word);
       setSuggestions(results);
       setShowSuggestions(results.length > 0);
+      // The first suggestion is the default, so Enter commits it without the
+      // user pressing Down first. Set here rather than in an effect on
+      // [suggestions]: an effect runs after paint, which would leave a frame
+      // with nothing highlighted and Enter still inert.
+      setActiveIndex(results.length > 0 ? 0 : -1);
     }, 300);
   }
 

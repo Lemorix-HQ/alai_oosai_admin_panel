@@ -5,6 +5,7 @@ import { use, useState } from "react";
 import PageShell from "@/components/ui/PageShell";
 import { FormActions, FormCard } from "@/components/ui/Field";
 import MemberFields, {
+  memberActivityError,
   memberNameError,
   memberToValues,
   valuesToPayload,
@@ -45,7 +46,7 @@ function EditMemberForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const nameError = memberNameError(v);
+    const nameError = memberNameError(v) ?? memberActivityError(v);
     if (nameError) return setError(nameError);
     setError(null);
 

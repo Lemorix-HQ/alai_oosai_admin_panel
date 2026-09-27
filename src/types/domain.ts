@@ -98,6 +98,53 @@ export interface NextSerial {
   active_families: number;
 }
 
+// -------------------------------------------------------------------- lookups
+
+/**
+ * The four parish-owned lists a member's schooling, college and work are
+ * chosen from. Seeded for occupation and place; school and college start
+ * empty and grow as faculty record families.
+ */
+export interface LookupBase {
+  _id: string;
+  parish_id: string;
+  name: string;
+  name_ta?: string;
+  status: 'active' | 'inactive';
+}
+export interface School extends LookupBase { type?: string; board?: string }
+export interface College extends LookupBase { type?: string }
+export interface Occupation extends LookupBase { industry: string }
+export interface Place extends LookupBase {
+  kind: string;
+  country: string;
+  state?: string;
+  district?: string;
+}
+
+type PlaceRef = Ref<Pick<Place, '_id' | 'name' | 'name_ta' | 'country'>> | null;
+
+/** Each block carries the year it was true; a standard without one is not a fact. */
+export interface MemberSchooling {
+  school_id: Ref<Pick<School, '_id' | 'name' | 'name_ta'>>;
+  standard?: string;
+  place_id?: PlaceRef;
+  as_of_year: number;
+}
+export interface MemberCollege {
+  college_id: Ref<Pick<College, '_id' | 'name' | 'name_ta'>>;
+  course_year?: number;
+  degree?: string;
+  place_id?: PlaceRef;
+  as_of_year: number;
+}
+export interface MemberWork {
+  occupation_id: Ref<Pick<Occupation, '_id' | 'name' | 'name_ta' | 'industry'>>;
+  place_id?: PlaceRef;
+  nature_of_work?: string;
+  as_of_year: number;
+}
+
 // ------------------------------------------------------------------ household
 
 export const PASTORAL_FLAGS = [
@@ -130,8 +177,9 @@ export interface Member {
   dob_is_estimated: boolean;
   relationship_to_head: MemberRelationship;
   marital_status: 'single' | 'married' | 'widowed' | 'separated' | 'religious' | 'unknown';
-  occupation?: string;
-  education?: string;
+  schooling?: MemberSchooling | null;
+  college?: MemberCollege | null;
+  work?: MemberWork | null;
   phone?: string;
   email?: string;
   photo?: string;
@@ -187,6 +235,8 @@ export interface Family {
   verification_status: 'not_visited' | 'verified' | 'partially_verified';
   last_verified_on?: string | null;
   status: 'active' | 'transferred_out' | 'closed' | 'merged';
+  /** Set only on a merged family: the household it became part of. */
+  merged_into?: Ref<Pick<Family, '_id' | 'family_code'>> | null;
   is_deleted: boolean;
 }
 

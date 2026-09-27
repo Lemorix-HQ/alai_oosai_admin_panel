@@ -11,8 +11,10 @@ import { Field, FormActions, Select, TamilTextInput, TextInput } from "@/compone
 import LanguageToggle from "@/components/ui/LanguageToggle";
 import { PermissionGate } from "@/src/session/PermissionGate";
 import { P } from "@/src/session/permissions";
+import { useSession } from "@/src/session/SessionProvider";
 import { useCreateStaff, useRoles, useStaff } from "@/hooks/useAccess";
-import type { Role, RoleAssignment, StaffUser } from "@/src/types";
+import { useParishes } from "@/hooks/useParishes";
+import type { ParishWithCounts, Role, RoleAssignment, StaffUser } from "@/src/types";
 
 function activeRoles(assignments: RoleAssignment[] = []) {
   const names = assignments
@@ -24,9 +26,21 @@ function activeRoles(assignments: RoleAssignment[] = []) {
 function NewStaffForm({ onDone }: { onDone: () => void }) {
   const create = useCreateStaff();
   const { data: rolesRes } = useRoles();
+  const { user } = useSession();
+  const { data: parishRes } = useParishes();
   const roles = ((rolesRes?.data ?? []) as Role[]).filter(
     (r) => r.status === "active" && r.key !== "super_admin",
   );
+
+  // The account is bound to whichever parish the caller is currently on — the
+  // server reads it from the token, and the payload carries no parish at all.
+  // For a super admin that is the parish in the header selector, which is
+  // invisible from inside this form, so name it rather than let them find out
+  // from the list afterwards.
+  const parishes = (parishRes?.data ?? []) as ParishWithCounts[];
+  const targetParish = user?.parish_id
+    ? (parishes.find((p) => p._id === user.parish_id)?.name ?? null)
+    : null;
 
   const [v, setV] = useState({ name: "", phone: "", email: "", role_id: "" });
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +65,29 @@ function NewStaffForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      <div
+        className="px-3 py-2.5 rounded-lg text-xs font-medium flex items-start gap-2"
+        style={
+          targetParish
+            ? { backgroundColor: "#e0f2fe", color: "#075985" }
+            : { backgroundColor: "#fef3c7", color: "#92400e" }
+        }
+      >
+        <span className="material-symbols-outlined text-[16px] leading-none mt-0.5">
+          {targetParish ? "location_on" : "warning"}
+        </span>
+        <span>
+          {targetParish ? (
+            <>
+              This account will belong to <strong>{targetParish}</strong>. A staff
+              account belongs to one parish and cannot be moved; to add someone
+              elsewhere, change the parish in the header first.
+            </>
+          ) : (
+            <>No parish is selected. Choose one in the header before saving, or the account has nowhere to belong.</>
+          )}
+        </span>
+      </div>
       <LanguageToggle tamilMode={tamilMode} onToggle={() => setTamilMode(!tamilMode)} />
       <Field label="Name" required>
         <TamilTextInput
@@ -90,12 +127,40 @@ function NewStaffForm({ onDone }: { onDone: () => void }) {
 
 function StaffList() {
   const params = useSearchParams();
-  const { data, isLoading } = useStaff({ q: params.get("q") ?? undefined });
+  const { user } = useSession();
+  const isSuperAdmin = user?.account_type === "super_admin";
+
+  // A super admin who sends neither key gets every account type in every
+  // parish — parishioners and their own login included — on a page that says
+  // it lists the parish's staff. Everyone else is narrowed by the route
+  // itself, which pins them to their own parish and to parish_staff.
+  const { data, isLoading } = useStaff({
+    q: params.get("q") ?? undefined,
+    ...(isSuperAdmin
+      ? { account_type: "parish_staff", parish_id: params.get("parish_id") ?? undefined }
+      : {}),
+  });
+  const { data: parishRes } = useParishes();
+
   const staff = (data?.data ?? []) as StaffUser[];
+  const parishes = (parishRes?.data ?? []) as ParishWithCounts[];
+  const parishName = new Map(parishes.map((p) => [p._id, p.name]));
 
   const columns: Column<StaffUser>[] = [
     { key: "name", header: "Name", render: (u) => u.name },
     { key: "phone", header: "Phone", render: (u) => u.phone ?? "—" },
+    // Only a super admin sees more than one parish here, so for anybody else
+    // the column would repeat their own parish on every row.
+    ...(isSuperAdmin
+      ? ([
+          {
+            key: "parish",
+            header: "Parish",
+            render: (u: StaffUser) =>
+              u.parish_id ? (parishName.get(u.parish_id) ?? "—") : "—",
+          },
+        ] as Column<StaffUser>[])
+      : []),
     { key: "roles", header: "Roles", render: (u) => activeRoles(u.assignments) },
     {
       key: "scope",
@@ -123,7 +188,20 @@ function StaffList() {
 
   return (
     <>
-      <FilterBar searchPlaceholder="Search by name or phone…" />
+      <FilterBar
+        searchPlaceholder="Search by name or phone…"
+        filters={
+          isSuperAdmin
+            ? [
+                {
+                  key: "parish_id",
+                  label: "Parish",
+                  options: parishes.map((p) => ({ value: p._id, label: p.name })),
+                },
+              ]
+            : []
+        }
+      />
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading staff…</p>
       ) : (

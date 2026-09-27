@@ -1,4 +1,5 @@
 'use server';
+import { AUTH_COOKIE } from '@/src/session/cookie';
 import { cookies } from 'next/headers';
 import { getRequest, postRequest } from '@/services/api';
 import { redirect } from 'next/navigation';
@@ -15,7 +16,7 @@ export async function verifyOtpAction(phone_number: string, otp: number) {
   );
   if (res.success && res.data?.token) {
     const cookieStore = await cookies();
-    cookieStore.set('admin_token', res.data.token, {
+    cookieStore.set(AUTH_COOKIE, res.data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -28,7 +29,7 @@ export async function verifyOtpAction(phone_number: string, otp: number) {
 
 export async function logoutAction() {
   const cookieStore = await cookies();
-  cookieStore.delete('admin_token');
+  cookieStore.delete(AUTH_COOKIE);
   redirect('/login');
 }
 
@@ -39,7 +40,7 @@ export async function switchParishAction(parish_id: string) {
   );
   if (res.success && res.data?.token) {
     const cookieStore = await cookies();
-    cookieStore.set('admin_token', res.data.token, {
+    cookieStore.set(AUTH_COOKIE, res.data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

@@ -6,6 +6,7 @@ import StatusPill from "@/components/ui/StatusPill";
 import { Field, FormActions, Select, TamilTextArea, TextInput } from "@/components/ui/Field";
 import MemberFields, {
   emptyMember,
+  memberActivityError,
   memberNameError,
   memberToValues,
   valuesToPayload,
@@ -81,7 +82,7 @@ export default function RecordVisitPanel({
   }
 
   async function saveMember() {
-    const nameError = memberNameError(mv);
+    const nameError = memberNameError(mv) ?? memberActivityError(mv);
     if (nameError) return setMemberError(nameError);
     setMemberError(null);
 

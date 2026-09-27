@@ -1,4 +1,5 @@
 'use server';
+import { AUTH_COOKIE } from '@/src/session/cookie';
 import { cookies } from 'next/headers';
 
 /**
@@ -32,7 +33,7 @@ async function request<TPayload, TResponse>(
   tags?: string[]
 ): Promise<ApiResponse<TResponse>> {
   const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
+  const token = cookieStore.get(AUTH_COOKIE)?.value;
 
   const isFormData = data instanceof FormData;
   const reqHeaders: Record<string, string> = {};

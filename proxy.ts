@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { AUTH_COOKIE } from "@/src/session/cookie";
 
 const PUBLIC_PATHS = ["/login", "/verify-otp"];
 
@@ -16,7 +17,12 @@ const PUBLIC_PATHS = ["/login", "/verify-otp"];
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const token = request.cookies.get("admin_token");
+  // /logout clears a rejected cookie. It must run whether or not a cookie
+  // is present, otherwise the rule below sends it back to / and the loop
+  // it exists to break never breaks.
+  if (pathname === "/logout") return NextResponse.next();
+
+  const token = request.cookies.get(AUTH_COOKIE);
   const isPublic = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 
   if (!token && !isPublic) {

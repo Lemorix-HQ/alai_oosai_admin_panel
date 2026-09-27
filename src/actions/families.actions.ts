@@ -23,6 +23,12 @@ export interface FamilyQuery {
   status?: string;
   page?: string;
   limit?: string;
+  // Member activity filters — used by /members, ignored by /families.
+  school_id?: string;
+  college_id?: string;
+  occupation_id?: string;
+  place_id?: string;
+  activity_year?: string;
 }
 
 export async function listFamiliesAction(query: FamilyQuery = {}) {
@@ -96,6 +102,10 @@ export async function transferFamilyAction(id: string, payload: TransferFamilyPa
 export interface CloseFamilyPayload {
   status: 'transferred_out' | 'closed' | 'merged';
   reason?: string;
+  /** Required when status is 'merged': the family this one became part of. */
+  merged_into?: string;
+  /** Carry the living members onto that family's card instead of leaving them here. */
+  move_members?: boolean;
 }
 
 export async function closeFamilyAction(id: string, payload: CloseFamilyPayload) {
@@ -114,12 +124,29 @@ export interface MemberPayload {
   date_of_birth?: string;
   dob_is_estimated?: boolean;
   marital_status?: string;
-  occupation?: string;
-  education?: string;
   phone?: string;
   email?: string;
   blood_group?: string;
   notes?: string;
+  // null removes a block that was previously recorded; undefined leaves it
+  // untouched. JSON.stringify drops undefined, which is exactly the
+  // difference the server relies on.
+  schooling?: MemberActivityPayload | null;
+  college?: MemberActivityPayload | null;
+  work?: MemberActivityPayload | null;
+}
+
+/** The union of the three blocks' writable fields; each sends its own subset. */
+export interface MemberActivityPayload {
+  school_id?: string;
+  college_id?: string;
+  occupation_id?: string;
+  standard?: string;
+  course_year?: number;
+  degree?: string;
+  nature_of_work?: string;
+  place_id?: string;
+  as_of_year: number;
 }
 
 export async function addMemberAction(familyId: string, payload: MemberPayload) {
