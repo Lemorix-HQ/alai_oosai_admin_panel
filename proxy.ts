@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { AUTH_COOKIE } from "@/src/session/cookie";
 
-const PUBLIC_PATHS = ["/login", "/verify-otp"];
+const PUBLIC_PATHS = ["/login", "/forgot-password", "/accept-invite", "/reset-password"];
 
 /**
  * Edge-level authentication. Next 16 calls this `proxy`; it is the former

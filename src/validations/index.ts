@@ -18,6 +18,15 @@ const validations = {
     .typeError('Please enter a valid description'),
   optional_string: string().typeError('Please enter a valid value').nullable(),
   iso_date: string().required('Date and time is required'),
+  email: string()
+    .required('Email is required')
+    .email('Enter a valid email address'),
+  password_required: string().required('Password is required'),
+  password_new: string()
+    .required('Password is required')
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/[A-Za-z]/, 'Password must contain at least one letter')
+    .matches(/\d/, 'Password must contain at least one number'),
   event_type: string()
     .oneOf(['event', 'poster', 'promotion'], 'Please select a valid type')
     .required('Type is required'),
