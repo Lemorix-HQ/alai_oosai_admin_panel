@@ -5,6 +5,15 @@ import { AUTH_COOKIE } from "@/src/session/cookie";
 const PUBLIC_PATHS = ["/login", "/forgot-password", "/accept-invite", "/reset-password"];
 
 /**
+ * Public paths that must render even when the browser already holds a session.
+ *
+ * A link token addresses a specific ACCOUNT, not whoever is signed in on this
+ * machine. Bouncing the holder to the dashboard — as somebody else, on a shared
+ * parish computer — is how an invitation silently never gets accepted.
+ */
+const TOKEN_PATHS = ["/accept-invite", "/reset-password"];
+
+/**
  * Edge-level authentication. Next 16 calls this `proxy`; it is the former
  * `middleware`.
  *
@@ -32,7 +41,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (token && isPublic) {
+  const carriesToken = TOKEN_PATHS.some((path) => pathname.startsWith(path));
+  if (token && isPublic && !carriesToken) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
