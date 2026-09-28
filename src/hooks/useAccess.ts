@@ -10,6 +10,7 @@ import {
   getStaffAction,
   listAuditAction,
   listRolesAction,
+  sendStaffInviteAction,
   listStaffAction,
   revokeAssignmentAction,
   updateRoleAction,
@@ -99,6 +100,17 @@ export function useCreateStaff() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['staff'] });
       qc.invalidateQueries({ queryKey: ['roles'] });
+    },
+  });
+}
+
+export function useSendStaffInvite(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (email?: string) => sendStaffInviteAction(id, email),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['staff-member', id] });
+      qc.invalidateQueries({ queryKey: ['staff'] });
     },
   });
 }

@@ -196,6 +196,41 @@ export interface MemberBrief {
   name_ta?: string;
 }
 
+/** A person, named just enough for a timeline to show and link to. */
+export interface TimelineMember {
+  _id: string;
+  name?: string;
+  name_ta?: string;
+}
+
+/**
+ * One thing that happened to a household.
+ *
+ * `recorded` is the honest bit: true where the event was written down as it
+ * happened, false where the server reconstructed it afterwards from what the
+ * documents still carry. A reconstruction has no actor, because nothing kept
+ * one at the time.
+ */
+export interface FamilyEvent {
+  at: string;
+  action:
+    | 'family.open'
+    | 'family.transfer'
+    | 'family.close'
+    | 'family.merge'
+    | 'member.add'
+    | 'member.remove';
+  recorded: boolean;
+  actor: { _id: string; name?: string } | null;
+  members: TimelineMember[];
+  reason?: string;
+  status?: string;
+  family_code?: string;
+  old_family_code?: string;
+  new_family_code?: string;
+  to_family?: { _id: string; family_code: string };
+}
+
 export interface FamilyTransfer {
   _id: string;
   family_id: string;
@@ -274,7 +309,10 @@ export interface Role {
   is_template: boolean;
   is_immutable: boolean;
   permissions: string[];
+  /** Derived from scope_anbiyam_ids on save, not chosen. */
   scope_level: 'system' | 'parish' | 'mandalam' | 'anbiyam';
+  /** The Anbiyams this role covers. Empty means the whole parish. */
+  scope_anbiyam_ids: string[];
   derived_from_role_id?: string | null;
   status: 'active' | 'inactive';
   /** Attached by the list endpoint. */
@@ -293,7 +331,7 @@ export interface RoleAssignment {
   _id: string;
   parish_id?: string | null;
   user_id: string;
-  role_id: Ref<Pick<Role, '_id' | 'key' | 'name' | 'permissions' | 'scope_level'>>;
+  role_id: Ref<Pick<Role, '_id' | 'key' | 'name' | 'permissions' | 'scope_level' | 'scope_anbiyam_ids'>>;
   scope_mandalam_ids: string[];
   scope_anbiyam_ids: string[];
   valid_from: string;
@@ -313,6 +351,10 @@ export interface StaffUser {
   parish_id?: string | null;
   member_id?: string | null;
   last_login_at?: string | null;
+  /** When the most recent invitation went out. Absent means never invited. */
+  invited_at?: string | null;
+  /** Set the moment they accept an invitation or reset. Absent means they cannot sign in yet. */
+  password_set_at?: string | null;
   createdAt?: string;
   assignments: RoleAssignment[];
 }

@@ -51,12 +51,14 @@ function NewStaffForm({ onDone }: { onDone: () => void }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!v.name.trim() || !v.phone.trim()) return setError("Name and phone are both required.");
+    if (!v.name.trim() || !v.phone.trim() || !v.email.trim()) {
+      return setError("Name, phone and email are all required.");
+    }
 
     const res = await create.mutateAsync({
       name: v.name.trim(),
       phone: v.phone.trim(),
-      email: v.email.trim() || undefined,
+      email: v.email.trim(),
       role_ids: v.role_id ? [v.role_id] : [],
     });
     if (!res.success) setError(res.message);
@@ -99,7 +101,11 @@ function NewStaffForm({ onDone }: { onDone: () => void }) {
       <Field label="Phone" required hint="This is the number they log in with. One phone, one person.">
         <TextInput value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} />
       </Field>
-      <Field label="Email">
+      <Field
+        label="Email"
+        required
+        hint="They set their own password from an invitation sent to this address. It is also what they sign in with."
+      >
         <TextInput type="email" value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} />
       </Field>
       <Field
@@ -169,7 +175,13 @@ function StaffList() {
       render: (u) => {
         const a = (u.assignments ?? []).filter((x) => x.status === "active");
         const narrowed = a.some(
-          (x) => x.scope_mandalam_ids?.length || x.scope_anbiyam_ids?.length,
+          (x) =>
+            x.scope_mandalam_ids?.length ||
+            x.scope_anbiyam_ids?.length ||
+            // A role that names its own Anbiyams leaves the assignment's lists
+            // empty, so reading those alone called the tightest scope on the
+            // page parish-wide.
+            (typeof x.role_id !== "string" && x.role_id.scope_anbiyam_ids?.length),
         );
         return narrowed ? "Narrowed" : a.length ? "Parish-wide" : "—";
       },
@@ -247,7 +259,7 @@ export default function StaffPage() {
       <SlideOver
         open={open}
         title="New staff account"
-        description="They log in with their phone and an OTP. The account exists as soon as you save it; it becomes active on their first login."
+        description="An invitation goes to their email address; they choose their own password from it and sign in with the email. The account exists as soon as you save it."
         onClose={() => setOpen(false)}
       >
         <NewStaffForm onDone={() => setOpen(false)} />
