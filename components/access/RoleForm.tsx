@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Field, FormActions, FormCard, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
+import { Field, FormActions, FormCard, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
+import RoleScopePicker, { resolveScope, scopeFromRole, type RoleScopeValue } from "@/components/access/RoleScopePicker";
 import { usePermissionCatalogue } from "@/hooks/useAccess";
-import type { ApiResponse, Role } from "@/src/types";
+import { useAnbiyams } from "@/hooks/useStructure";
+import type { Anbiyam, ApiResponse, Role } from "@/src/types";
 import type { RolePayload } from "@/actions/access.actions";
 
 const AREA_LABEL: Record<string, string> = {
@@ -50,9 +52,24 @@ export default function RoleForm({
     name: initial?.name ?? "",
     name_ta: initial?.name_ta ?? "",
     description: initial?.description ?? "",
-    scope_level: (initial?.scope_level ?? "parish") as "parish" | "mandalam" | "anbiyam",
   });
   const [selected, setSelected] = useState<Set<string>>(new Set(initial?.permissions ?? []));
+
+  const { data: anbiyamRes } = useAnbiyams();
+  const anbiyams = useMemo(() => (anbiyamRes?.data ?? []) as Anbiyam[], [anbiyamRes]);
+
+  // Held as the two lists the picker works in, and flattened to Anbiyam ids
+  // only on submit. The saved role stores nothing about Mandalams.
+  const [scope, setScope] = useState<RoleScopeValue>({ mandalam_ids: [], anbiyam_ids: [] });
+  const savedScope = initial?.scope_anbiyam_ids;
+  const [hydrated, setHydrated] = useState(false);
+  if (!hydrated && anbiyams.length > 0 && savedScope && savedScope.length > 0) {
+    // The Anbiyam list arrives after the first render, and the saved role holds
+    // Anbiyams alone — the Mandalams they sit in have to be read back off them
+    // before the picker can show anything.
+    setScope(scopeFromRole(savedScope, anbiyams));
+    setHydrated(true);
+  }
 
   const groups = useMemo(() => catalogueRes?.data?.groups ?? [], [catalogueRes]);
   const grantable = useMemo(
@@ -95,7 +112,7 @@ export default function RoleForm({
         name: values.name.trim(),
         name_ta: values.name_ta.trim() || undefined,
         description: values.description.trim() || undefined,
-        scope_level: values.scope_level,
+        scope_anbiyam_ids: resolveScope(scope, anbiyams),
         permissions: [...selected],
       });
       if (!res.success) {
@@ -141,21 +158,6 @@ export default function RoleForm({
               onChange={(e) => setValues((v) => ({ ...v, name_ta: e.target.value }))}
             />
           </Field>
-          <Field
-            label="Narrowest scope"
-            hint="How far an assignment of this role may be narrowed when it is granted."
-          >
-            <Select
-              value={values.scope_level}
-              onChange={(e) =>
-                setValues((v) => ({ ...v, scope_level: e.target.value as typeof v.scope_level }))
-              }
-            >
-              <option value="parish">Parish</option>
-              <option value="mandalam">Mandalam</option>
-              <option value="anbiyam">Anbiyam</option>
-            </Select>
-          </Field>
         </div>
         <Field label="Description">
           <TamilTextArea
@@ -164,6 +166,13 @@ export default function RoleForm({
             onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))}
           />
         </Field>
+      </FormCard>
+
+      <FormCard
+        title="Where this role may act"
+        description="Permissions say what someone may do. This says which Anbiyams they may do it in — the lists, the family cards and the members outside them are refused."
+      >
+        <RoleScopePicker value={scope} onChange={setScope} />
       </FormCard>
 
       <FormCard
