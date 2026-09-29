@@ -9,19 +9,32 @@ import { forgotPasswordAction } from "@/src/actions/auth.actions";
 
 export default function ForgotPasswordPage() {
   const [done, setDone] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const formik = useFormik({
     initialValues: { email: "" },
     validationSchema: forgotPasswordSchema,
     onSubmit: async (values, { setSubmitting }) => {
+      setError(null);
       try {
         const res = await forgotPasswordAction(values.email);
-        // The server answers the same whether or not the address exists, and
-        // this page must not undo that by saying anything more specific.
+        // A throttled request (10/min) or an unreachable API arrives here as
+        // success:false with the error text. Showing that under "Check your
+        // email" tells somebody a link is coming when nothing was sent.
+        //
+        // Separating the two costs no enumeration protection: the server
+        // already returns one identical message for known and unknown
+        // addresses, so only genuine failures land here.
+        if (!res.success) {
+          setError(res.message || "Could not send the link. Please try again.");
+          return;
+        }
         setDone(
           res.message ||
             "If that address belongs to an administrator account, a reset link is on its way."
         );
+      } catch {
+        setError("Network error. Please try again.");
       } finally {
         setSubmitting(false);
       }
@@ -67,6 +80,11 @@ export default function ForgotPasswordPage() {
             <p className="text-xs text-red-600">{formik.errors.email}</p>
           )}
         </div>
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
         <button
           type="submit"
           disabled={formik.isSubmitting}

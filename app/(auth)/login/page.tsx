@@ -7,6 +7,20 @@ import { Suspense, useState } from "react";
 import { emailLoginSchema } from "@/src/validations/auth.validation";
 import { loginAction } from "@/src/actions/auth.actions";
 
+/**
+ * `next` comes from the URL, so it is attacker-controllable. Without this,
+ * /login?next=https://evil.example sends somebody off-site the instant they
+ * sign in successfully — on a link that genuinely is the parish panel, which is
+ * what makes it useful for phishing.
+ *
+ * Only a path on this site is allowed: one leading slash, and not two (`//host`
+ * is a protocol-relative URL to somewhere else).
+ */
+function safeNext(next: string | null): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/";
+  return next;
+}
+
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
@@ -20,7 +34,7 @@ function LoginForm() {
       setApiError(null);
       try {
         const res = await loginAction(values.email, values.password);
-        if (res.success) router.push(params.get("next") ?? "/");
+        if (res.success) router.push(safeNext(params.get("next")));
         else setApiError(res.message || "Could not sign you in. Please try again.");
       } catch {
         setApiError("Network error. Please try again.");
