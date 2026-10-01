@@ -41,8 +41,8 @@ jobs:
           # a thirty-second rollback — point the compose file at yesterday's
           # SHA and pull.
           tags: |
-            ghcr.io/lemorixhq/alai-oosai-admin:latest
-            ghcr.io/lemorixhq/alai-oosai-admin:${{ github.sha }}
+            ghcr.io/lemorix-hq/alai-oosai-admin:latest
+            ghcr.io/lemorix-hq/alai-oosai-admin:${{ github.sha }}
           # Docker's layer cache kept in GitHub, so npm ci is reused between
           # runs: about five minutes becomes about ninety seconds.
           cache-from: type=gha
