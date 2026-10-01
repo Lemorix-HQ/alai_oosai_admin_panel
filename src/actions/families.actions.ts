@@ -5,6 +5,7 @@ import type {
   Address,
   Family,
   FamilyDetail,
+  FamilyEvent,
   FamilyTransfer,
   Member,
   MemberRelationship,
@@ -37,6 +38,10 @@ export async function listFamiliesAction(query: FamilyQuery = {}) {
 
 export async function getFamilyAction(id: string) {
   return getRequest<undefined, FamilyDetail>(`/families/${id}`);
+}
+
+export async function getFamilyTimelineAction(id: string) {
+  return getRequest<undefined, FamilyEvent[]>(`/families/${id}/timeline`);
 }
 
 export interface CreateFamilyPayload {

@@ -6,6 +6,7 @@ import {
   closeFamilyAction,
   createFamilyAction,
   getFamilyAction,
+  getFamilyTimelineAction,
   getMemberAction,
   listFamiliesAction,
   listMembersAction,
@@ -35,6 +36,22 @@ export function useFamily(id: string) {
   return useQuery({
     queryKey: ['family', id],
     queryFn: () => getFamilyAction(id),
+    enabled: !!id,
+  });
+}
+
+/**
+ * Keyed UNDER the family rather than beside it.
+ *
+ * Every mutation that changes a household's history already invalidates
+ * `['family', id]`, and TanStack matches by key prefix — so adding a member or
+ * closing the card refreshes the timeline without any of them having to know
+ * the timeline exists.
+ */
+export function useFamilyTimeline(id: string) {
+  return useQuery({
+    queryKey: ['family', id, 'timeline'],
+    queryFn: () => getFamilyTimelineAction(id),
     enabled: !!id,
   });
 }

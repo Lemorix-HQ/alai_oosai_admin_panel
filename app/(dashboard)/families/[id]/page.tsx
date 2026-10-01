@@ -6,6 +6,7 @@ import PageShell from "@/components/ui/PageShell";
 import StatusPill from "@/components/ui/StatusPill";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { FormCard, Select } from "@/components/ui/Field";
+import FamilyTimeline from "@/components/families/FamilyTimeline";
 import { PermissionGate } from "@/src/session/PermissionGate";
 import { P } from "@/src/session/permissions";
 import { useCloseFamily, useFamily, useRemoveMember, useUpdateFamily } from "@/hooks/useFamilies";
@@ -285,25 +286,7 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
             </FormCard>
           )}
 
-          {(family.transfers ?? []).length > 0 && (
-            <FormCard title="Transfer history">
-              <ul className="space-y-3 text-sm">
-                {family.transfers.map((t) => (
-                  <li key={t._id} className="flex flex-wrap items-baseline gap-2">
-                    <span className="font-mono text-xs">{t.old_family_code ?? "—"}</span>
-                    <span className="material-symbols-outlined text-[14px] text-slate-400">arrow_forward</span>
-                    <span className="font-mono text-xs font-bold" style={{ color: "#0D5C63" }}>
-                      {t.new_family_code ?? "—"}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      {new Date(t.effective_on).toLocaleDateString()} · {t.type} · {t.assignment_method.replace("_", " ")}
-                    </span>
-                    {t.reason && <span className="text-xs text-slate-500 w-full">{t.reason}</span>}
-                  </li>
-                ))}
-              </ul>
-            </FormCard>
-          )}
+          <FamilyTimeline familyId={id} />
         </div>
 
         <div className="space-y-4">
@@ -325,28 +308,6 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
               ))}
             </dl>
           </FormCard>
-
-          {(family.code_history ?? []).length > 0 && (
-            <FormCard
-              title="Previous codes"
-              description="A paper record marked with one of these belongs to this family, not to whoever holds that code today."
-            >
-              <ul className="space-y-1 text-sm">
-                {family.code_history.map((c, i) => (
-                  <li key={`${c.code}-${i}`} className="flex flex-wrap items-baseline gap-2">
-                    <span className="font-mono">{c.code}</span>
-                    {/* The date is what makes an old code resolvable: the same
-                        code read off a later record belongs to someone else. */}
-                    {c.to && (
-                      <span className="text-xs text-slate-400">
-                        until {new Date(c.to).toLocaleDateString()}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </FormCard>
-          )}
 
           {family.notes && (
             <FormCard title="Notes">
