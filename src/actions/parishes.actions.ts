@@ -1,34 +1,66 @@
 'use server';
-import { deleteRequest, getRequest, patchRequest, postRequest } from '@/services/api';
-import type { Parish, ParishStats, ParishAdminInfo } from '@/types';
 
-// GET /parishes/:id returns { _id, name } directly (not in standard { success, data } wrapper).
-// api.ts will return the raw object cast as ApiResponse, so res.data is undefined
-// but the name is on the object itself.
+import { deleteRequest, getRequest, patchRequest, postRequest } from '@/services/api';
+import type {
+  Address,
+  Parish,
+  ParishAdminInfo,
+  ParishSettings,
+  ParishStatsDetail,
+  ParishWithCounts,
+} from '@/src/types';
+
 export async function getParishNameAction(id: string): Promise<string | null> {
   try {
     const res = await getRequest<undefined, { name: string }>(`/parishes/${id}`);
-    // Standard format: res.data.name
     if (res.data?.name) return res.data.name;
-    // Non-standard: the parishes/:id endpoint returns { _id, name } directly
+    // GET /parishes/:id used to return a bare { _id, name }. Kept so a panel
+    // deployed ahead of the API still renders its header.
     const raw = res as unknown as { name?: string };
-    if (raw.name) return raw.name;
-    return null;
+    return raw.name ?? null;
   } catch {
     return null;
   }
 }
 
 export async function listParishesAction() {
-  return getRequest<undefined, Parish[]>('/parishes');
+  return getRequest<undefined, ParishWithCounts[]>('/parishes');
 }
 
-export async function createParishAction(payload: { name: string }) {
-  return postRequest<{ name: string }, Parish>('/parishes', payload);
+export async function getParishAction(id: string) {
+  return getRequest<undefined, Parish>(`/parishes/${id}`);
 }
 
-export async function updateParishAction(id: string, payload: { name: string }) {
-  return patchRequest<{ name: string }, Parish>(`/parishes/${id}`, payload);
+export interface ParishPayload {
+  name: string;
+  /** Prefixes issued certificate numbers, so it is required and unique. */
+  code: string;
+  name_ta?: string;
+  patron_saint?: string;
+  diocese?: string;
+  deanery?: string;
+  phone?: string;
+  alt_phone?: string;
+  email?: string;
+  logo?: string;
+  established_on?: string;
+  address?: Address;
+}
+
+export async function createParishAction(payload: ParishPayload) {
+  return postRequest<ParishPayload, Parish>('/parishes', payload);
+}
+
+export async function updateParishAction(id: string, payload: Partial<ParishPayload>) {
+  return patchRequest<Partial<ParishPayload>, Parish>(`/parishes/${id}`, payload);
+}
+
+/** Pastoral configuration. A different permission from updateParishAction. */
+export async function updateParishSettingsAction(
+  id: string,
+  payload: Partial<ParishSettings>,
+) {
+  return patchRequest<Partial<ParishSettings>, Parish>(`/parishes/${id}/settings`, payload);
 }
 
 export async function deleteParishAction(id: string) {
@@ -36,7 +68,7 @@ export async function deleteParishAction(id: string) {
 }
 
 export async function getParishStatsAction(id: string) {
-  return getRequest<undefined, ParishStats>(`/parishes/${id}/stats`);
+  return getRequest<undefined, ParishStatsDetail>(`/parishes/${id}/stats`);
 }
 
 export async function assignParishAdminAction(

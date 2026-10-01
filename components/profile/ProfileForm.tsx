@@ -3,18 +3,23 @@
 import { useFormik } from "formik";
 import { useState } from "react";
 import { updateUserNameAction } from "@/src/actions/users.actions";
+import TamilInput from "@/components/ui/TamilInput";
+import LanguageToggle from "@/components/ui/LanguageToggle";
 
 interface ProfileFormProps {
   userId: string;
   initialName: string;
   phone: string;
-  role: string;
+  /** Role names if any, otherwise the account type. See src/lib/labels.ts */
+  roleLabel: string;
   parishName?: string | null;
 }
 
-export default function ProfileForm({ userId, initialName, phone, role, parishName }: ProfileFormProps) {
+export default function ProfileForm({ userId, initialName, phone, roleLabel, parishName }: ProfileFormProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  // The display name is one field in either language, so the form toggles.
+  const [tamilMode, setTamilMode] = useState(true);
 
   const formik = useFormik({
     initialValues: { name: initialName },
@@ -43,6 +48,8 @@ export default function ProfileForm({ userId, initialName, phone, role, parishNa
 
   return (
     <form className="space-y-6" onSubmit={formik.handleSubmit}>
+      <LanguageToggle tamilMode={tamilMode} onToggle={() => setTamilMode(!tamilMode)} />
+
       {successMsg && (
         <div
           className="p-3 rounded-lg text-sm font-medium"
@@ -65,7 +72,8 @@ export default function ProfileForm({ userId, initialName, phone, role, parishNa
           <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "#596065" }}>
             Display Name
           </label>
-          <input
+          <TamilInput
+            tamilMode={tamilMode}
             className="w-full px-4 py-3 rounded-lg border font-medium outline-none transition-all"
             style={{
               borderColor: formik.touched.name && formik.errors.name ? "#a83836" : "#abb3b9",
@@ -116,7 +124,7 @@ export default function ProfileForm({ userId, initialName, phone, role, parishNa
               }}
               readOnly
               type="text"
-              value={role === "super_admin" ? "Super Admin" : "Parish Admin"}
+              value={roleLabel}
             />
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
               lock

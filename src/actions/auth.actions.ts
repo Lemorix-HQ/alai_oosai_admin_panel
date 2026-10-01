@@ -2,11 +2,10 @@
 import { cookies } from 'next/headers';
 import { getRequest, postRequest } from '@/services/api';
 import { redirect } from 'next/navigation';
+import type { SessionUser } from '@/src/types';
 
 export async function sendOtpAction(phone_number: string) {
-   const res =await postRequest<{ phone_number: string }, null>('/auth/send-otp', { phone_number });
-   console.log("set otp res",res)
-   return res;
+  return postRequest<{ phone_number: string }, null>('/auth/send-otp', { phone_number });
 }
 
 export async function verifyOtpAction(phone_number: string, otp: number) {
@@ -52,9 +51,6 @@ export async function switchParishAction(parish_id: string) {
 }
 
 export async function getMeAction() {
-  return getRequest<
-    undefined,
-    { id: string; name: string; phone: string; role: string; parish_id: string | null }
-  >('/auth/me');
+  return getRequest<undefined, SessionUser>('/auth/me');
 }
 

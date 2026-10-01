@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   experimental: {
     // bodySizeLimit controls how much data a server action can receive.
     // proxyClientMaxBodySize controls the internal Next.js proxy layer (added

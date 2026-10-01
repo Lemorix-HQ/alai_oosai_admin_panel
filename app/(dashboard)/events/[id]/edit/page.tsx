@@ -6,6 +6,9 @@ import { useFormik } from "formik";
 import { useEffect, useState } from "react";
 import { useEvent, useUpdateEvent, useDeleteEvent } from "@/src/hooks/useEvents";
 import { useQueryClient } from "@tanstack/react-query";
+import TamilInput from "@/components/ui/TamilInput";
+import TamilTextarea from "@/components/ui/TamilTextarea";
+import LanguageToggle from "@/components/ui/LanguageToggle";
 
 export default function EditEventPage() {
   const router = useRouter();
@@ -15,6 +18,7 @@ export default function EditEventPage() {
 
   const [apiError, setApiError] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [tamilMode, setTamilMode] = useState(true);
 
   const { data: result, isLoading } = useEvent(id);
   const updateEvent = useUpdateEvent(id);
@@ -161,6 +165,8 @@ export default function EditEventPage() {
               </div>
             )}
 
+            <LanguageToggle tamilMode={tamilMode} onToggle={() => setTamilMode(!tamilMode)} />
+
             <form
               className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6"
               onSubmit={formik.handleSubmit}
@@ -171,7 +177,8 @@ export default function EditEventPage() {
                   <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>
                     Event Title <span style={{ color: "#a83836" }}>*</span>
                   </label>
-                  <input
+                  <TamilInput
+                    tamilMode={tamilMode}
                     className="w-full rounded-lg px-4 py-2.5 border outline-none"
                     style={{ borderColor: fieldError("title") ? "#a83836" : "#abb3b9", backgroundColor: "#ffffff" }}
                     name="title" type="text"
@@ -215,7 +222,8 @@ export default function EditEventPage() {
                 <div>
                   <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Location/Place <span style={{ color: "#a83836" }}>*</span></label>
                   <div className="relative">
-                    <input
+                    <TamilInput
+                      tamilMode={tamilMode}
                       className="w-full rounded-lg pl-10 pr-4 py-2.5 border outline-none"
                       style={{ borderColor: fieldError("place") ? "#a83836" : "#abb3b9", backgroundColor: "#ffffff" }}
                       name="place" type="text"
@@ -230,7 +238,8 @@ export default function EditEventPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Conductor Name <span style={{ color: "#a83836" }}>*</span></label>
-                    <input
+                    <TamilInput
+                      tamilMode={tamilMode}
                       className="w-full rounded-lg px-4 py-2.5 border outline-none"
                       style={{ borderColor: fieldError("conductorName") ? "#a83836" : "#abb3b9", backgroundColor: "#ffffff" }}
                       name="conductorName" type="text"
@@ -255,7 +264,8 @@ export default function EditEventPage() {
 
                 <div>
                   <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Tags</label>
-                  <input
+                  <TamilInput
+                    tamilMode={tamilMode}
                     className="w-full rounded-lg px-4 py-2.5 border outline-none"
                     style={{ borderColor: "#abb3b9", backgroundColor: "#ffffff" }}
                     name="tags" type="text" placeholder="Separate with commas"
@@ -265,7 +275,8 @@ export default function EditEventPage() {
 
                 <div>
                   <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>CTA Text</label>
-                  <input
+                  <TamilInput
+                    tamilMode={tamilMode}
                     className="w-full rounded-lg px-4 py-2.5 border outline-none"
                     style={{ borderColor: "#abb3b9", backgroundColor: "#ffffff" }}
                     name="ctaText" type="text" placeholder="e.g. Join Now"
@@ -278,7 +289,8 @@ export default function EditEventPage() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Description <span style={{ color: "#a83836" }}>*</span></label>
-                  <textarea
+                  <TamilTextarea
+                    tamilMode={tamilMode}
                     className="w-full rounded-lg px-4 py-2.5 border outline-none"
                     style={{ borderColor: fieldError("description") ? "#a83836" : "#abb3b9", backgroundColor: "#ffffff" }}
                     name="description" rows={10}
