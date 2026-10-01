@@ -12,9 +12,11 @@ export default async function DashboardLayout({
 }) {
   const user = await getSession();
 
-  // middleware.ts handles the no-cookie case; this catches a cookie whose token
-  // the backend rejects, which would otherwise render an empty shell.
-  if (!user) redirect("/login");
+  // proxy.ts handles the no-cookie case; this catches a cookie whose token the
+  // backend rejects, which would otherwise render an empty shell. It goes to
+  // /logout rather than /login so the bad cookie is actually cleared —
+  // /login would bounce straight back here and loop.
+  if (!user) redirect("/logout");
 
   const parishName = user.parish_id
     ? await getParishNameAction(user.parish_id)

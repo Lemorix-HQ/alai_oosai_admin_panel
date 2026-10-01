@@ -3,19 +3,41 @@
 import { useState } from "react";
 import StatusPill from "@/components/ui/StatusPill";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { Field, FormActions, FormCard, Select, TamilTextInput } from "@/components/ui/Field";
-import { useAssignRole, useRevokeAssignment, useRoles, useStaffMember } from "@/hooks/useAccess";
+import { Field, FormActions, FormCard, Select, TamilTextInput, TextInput } from "@/components/ui/Field";
+import { useAssignRole, useRevokeAssignment, useRoles, useSendStaffInvite, useStaffMember } from "@/hooks/useAccess";
 import { useAnbiyams, useMandalams } from "@/hooks/useStructure";
 import type { Anbiyam, Mandalam, Role, RoleAssignment } from "@/src/types";
 
 const roleOf = (a: RoleAssignment) =>
   typeof a.role_id === "string" ? { _id: a.role_id, name: a.role_id, key: "" } : a.role_id;
 
+/** The Anbiyams a role carries, when it carries any. */
+function roleScopeOf(a: RoleAssignment): string[] {
+  const role = a.role_id;
+  return typeof role === "string" ? [] : (role.scope_anbiyam_ids ?? []);
+}
+
+function codesOf(ids: string[], anbiyams: Anbiyam[]) {
+  return ids.map((id) => anbiyams.find((x) => x._id === id)?.code ?? id.slice(-6)).join(", ");
+}
+
 function ScopeSummary({ a, mandalams, anbiyams }: {
   a: RoleAssignment;
   mandalams: Mandalam[];
   anbiyams: Anbiyam[];
 }) {
+  // The role's own Anbiyams first: assignRole leaves the assignment's lists
+  // empty for a scoped role, so reading those would report "Whole parish" for
+  // the most tightly scoped grant on the page.
+  const fromRole = roleScopeOf(a);
+  if (fromRole.length) {
+    return (
+      <span className="text-xs text-slate-500">
+        Anbiyams: {codesOf(fromRole, anbiyams)}{" "}
+        <span className="text-slate-400">(from the role)</span>
+      </span>
+    );
+  }
   if (a.scope_mandalam_ids?.length) {
     const names = a.scope_mandalam_ids.map(
       (id) => mandalams.find((m) => m._id === id)?.name ?? id.slice(-6),
@@ -23,10 +45,7 @@ function ScopeSummary({ a, mandalams, anbiyams }: {
     return <span className="text-xs text-slate-500">Mandalams: {names.join(", ")}</span>;
   }
   if (a.scope_anbiyam_ids?.length) {
-    const names = a.scope_anbiyam_ids.map(
-      (id) => anbiyams.find((x) => x._id === id)?.code ?? id.slice(-6),
-    );
-    return <span className="text-xs text-slate-500">Anbiyams: {names.join(", ")}</span>;
+    return <span className="text-xs text-slate-500">Anbiyams: {codesOf(a.scope_anbiyam_ids, anbiyams)}</span>;
   }
   return <span className="text-xs text-slate-500">Whole parish</span>;
 }
@@ -38,6 +57,74 @@ function ScopeSummary({ a, mandalams, anbiyams }: {
  * assignment — showing the roles alone would not answer "what can this person
  * actually do", which is the question being asked on this screen.
  */
+/**
+ * Whether this account can actually sign in, and the button that fixes it.
+ *
+ * password_set_at is the only honest signal: an account can be active and still
+ * have no password if it was created before email sign-in existed.
+ */
+function AccountStatus({
+  staff,
+  onInvite,
+  sending,
+  result,
+}: {
+  staff: { email?: string | null; invited_at?: string | null; password_set_at?: string | null };
+  onInvite: (email?: string) => void;
+  sending: boolean;
+  result?: { success: boolean; message: string; data?: { delivered?: boolean } };
+}) {
+  const [email, setEmail] = useState(staff.email ?? "");
+
+  const state = staff.password_set_at
+    ? { label: "Active", tone: "#166534", note: "They have set a password and can sign in." }
+    : staff.invited_at
+      ? {
+          label: "Invited",
+          tone: "#92400e",
+          note: `Invitation sent ${new Date(staff.invited_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}. It expires seven days after that.`,
+        }
+      : { label: "Never invited", tone: "#991b1b", note: "They cannot sign in until an invitation is sent." };
+
+  return (
+    <div className="rounded-lg border border-slate-200 p-4 space-y-3">
+      <span className="text-xs font-bold uppercase tracking-wider" style={{ color: state.tone }}>
+        {state.label}
+      </span>
+      <p className="text-xs text-slate-500">{state.note}</p>
+
+      {!staff.email && (
+        <Field label="Email" hint="This account was created before email sign-in. Add an address to invite them.">
+          <TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </Field>
+      )}
+
+      <button
+        type="button"
+        disabled={sending || (!staff.email && !email.trim())}
+        onClick={() => onInvite(staff.email ? undefined : email.trim())}
+        className="text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-60 cursor-pointer"
+        style={{ backgroundColor: "#0d5c63" }}
+      >
+        {sending ? "Sending…" : staff.invited_at ? "Resend invite" : "Send invite"}
+      </button>
+      <p className="text-xs text-slate-400">
+        Sending a new invitation stops the previous link working.
+      </p>
+      {result && (
+        <p
+          className="text-xs"
+          // Delivery, not HTTP status: the request succeeds even when the mail
+          // server is down, and a green "could not be sent" reads as success.
+          style={{ color: result.success && result.data?.delivered ? "#166534" : "#991b1b" }}
+        >
+          {result.message}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function StaffDetailView({ userId }: { userId: string }) {
   const { data, isLoading } = useStaffMember(userId);
   const { data: rolesRes } = useRoles();
@@ -45,6 +132,7 @@ export default function StaffDetailView({ userId }: { userId: string }) {
   const { data: anbiyamRes } = useAnbiyams();
   const assign = useAssignRole();
   const revoke = useRevokeAssignment(userId);
+  const invite = useSendStaffInvite(userId);
 
   const [roleId, setRoleId] = useState("");
   const [scopeType, setScopeType] = useState<"parish" | "mandalam" | "anbiyam">("parish");
@@ -63,6 +151,7 @@ export default function StaffDetailView({ userId }: { userId: string }) {
   const active = (user.assignments ?? []).filter((a) => a.status === "active");
   const past = (user.assignments ?? []).filter((a) => a.status !== "active");
   const selectedRole = roles.find((r) => r._id === roleId);
+  const roleCarriesScope = (selectedRole?.scope_anbiyam_ids?.length ?? 0) > 0;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -72,8 +161,8 @@ export default function StaffDetailView({ userId }: { userId: string }) {
     const res = await assign.mutateAsync({
       user_id: userId,
       role_id: roleId,
-      ...(scopeType === "mandalam" ? { scope_mandalam_ids: scopeIds } : {}),
-      ...(scopeType === "anbiyam" ? { scope_anbiyam_ids: scopeIds } : {}),
+      ...(roleCarriesScope || scopeType !== "mandalam" ? {} : { scope_mandalam_ids: scopeIds }),
+      ...(roleCarriesScope || scopeType !== "anbiyam" ? {} : { scope_anbiyam_ids: scopeIds }),
       note: note.trim() || undefined,
     });
     if (!res.success) setError(res.message);
@@ -111,10 +200,13 @@ export default function StaffDetailView({ userId }: { userId: string }) {
               </dd>
             </div>
           </dl>
-          {user.status === "not_registered" && (
-            <p className="text-xs text-slate-500">
-              The account exists but nobody has logged into it. It becomes active on first OTP verification.
-            </p>
+          {user.account_type !== "parishioner" && (
+            <AccountStatus
+              staff={user}
+              sending={invite.isPending}
+              result={invite.data}
+              onInvite={(email) => invite.mutate(email)}
+            />
           )}
         </FormCard>
 
@@ -211,25 +303,39 @@ export default function StaffDetailView({ userId }: { userId: string }) {
 
             {selectedRole && (
               <p className="text-xs text-slate-500">
-                {selectedRole.permissions.length} permissions · narrowest scope: {selectedRole.scope_level}
+                {selectedRole.permissions.length} permissions
               </p>
             )}
 
-            <Field label="Scope" hint="Narrow the role to particular zones, or leave it parish-wide.">
-              <Select
-                value={scopeType}
-                onChange={(e) => {
-                  setScopeType(e.target.value as typeof scopeType);
-                  setScopeIds([]);
-                }}
-              >
-                <option value="parish">Whole parish</option>
-                <option value="mandalam">Selected Mandalams</option>
-                <option value="anbiyam">Selected Anbiyams</option>
-              </Select>
-            </Field>
+            {/* A role that names its own Anbiyams IS the scope, so there is
+                nothing to choose here — showing a picker that the server would
+                refuse would only look like a broken form. */}
+            {roleCarriesScope ? (
+              <Field label="Scope" hint="Set on the role itself. Edit the role to change it.">
+                <p
+                  className="px-3 py-2 rounded-lg border text-sm"
+                  style={{ borderColor: "#dce3e9", backgroundColor: "#f0fdfc", color: "#0D5C63" }}
+                >
+                  {codesOf(selectedRole!.scope_anbiyam_ids, anbiyams)}
+                </p>
+              </Field>
+            ) : (
+              <Field label="Scope" hint="Narrow the role to particular zones, or leave it parish-wide.">
+                <Select
+                  value={scopeType}
+                  onChange={(e) => {
+                    setScopeType(e.target.value as typeof scopeType);
+                    setScopeIds([]);
+                  }}
+                >
+                  <option value="parish">Whole parish</option>
+                  <option value="mandalam">Selected Mandalams</option>
+                  <option value="anbiyam">Selected Anbiyams</option>
+                </Select>
+              </Field>
+            )}
 
-            {scopeType !== "parish" && (
+            {!roleCarriesScope && scopeType !== "parish" && (
               <Field label={scopeType === "mandalam" ? "Mandalams" : "Anbiyams"}>
                 <select
                   multiple

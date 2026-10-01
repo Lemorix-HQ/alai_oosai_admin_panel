@@ -8,7 +8,7 @@
 - **Next.js 16.2.2** (Turbopack), React 19, Tailwind CSS 4
 - **TanStack Query v5** — server actions are used as `queryFn` / `mutationFn` (no axios/fetch in client components)
 - **Formik** — `useFormik` with inline `validate` function (no Yup)
-- **JWT** stored in `admin_token` httpOnly cookie; decoded with `jwt-decode`
+- **JWT** stored in an httpOnly cookie named by `AUTH_COOKIE` (`src/session/cookie.ts`); decoded with `jwt-decode`
 
 ---
 
@@ -62,7 +62,14 @@ All API calls go through `src/services/api.ts` (`getRequest`, `postRequest`, `pa
 Client components must call server actions from `src/actions/*.actions.ts`.
 
 ### Authentication
-- Cookie name: `admin_token`
+- Cookie name: `AUTH_COOKIE` from `src/session/cookie.ts` — `admin_token` by default,
+  or whatever `AUTH_COOKIE_NAME` is set to. Never hardcode it. Browsers match cookies
+  by host and ignore the port, so the test panel on localhost:3401 would otherwise
+  share a session with the dev panel on localhost:3001 while their APIs sign tokens
+  with different secrets.
+- `GET /logout` clears the cookie. The dashboard layout redirects there, not to
+  `/login`, when `/auth/me` rejects the token — a Server Component cannot delete a
+  cookie, and `/login` with a cookie still set bounces back to `/` and loops.
 - JWT payload shape: `{ sub, phone, role, name, parish_id?, iat, exp }`
 - Middleware at `src/middleware.ts` protects all dashboard routes
 

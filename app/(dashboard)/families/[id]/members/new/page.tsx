@@ -6,6 +6,7 @@ import PageShell from "@/components/ui/PageShell";
 import { FormActions, FormCard } from "@/components/ui/Field";
 import MemberFields, {
   emptyMember,
+  memberActivityError,
   memberNameError,
   valuesToPayload,
   type MemberValues,
@@ -25,7 +26,7 @@ export default function NewMemberPage({ params }: { params: Promise<{ id: string
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const nameError = memberNameError(v);
+    const nameError = memberNameError(v) ?? memberActivityError(v);
     if (nameError) return setError(nameError);
     setError(null);
 

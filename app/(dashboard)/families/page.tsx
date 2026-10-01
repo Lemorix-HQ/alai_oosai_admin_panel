@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import PageShell from "@/components/ui/PageShell";
 import FilterBar from "@/components/ui/FilterBar";
 import Pagination from "@/components/ui/Pagination";
+import CellLink from "@/components/ui/CellLink";
 import ResourceTable, { type Column } from "@/components/ui/ResourceTable";
 import StatusPill from "@/components/ui/StatusPill";
 import { PermissionGate } from "@/src/session/PermissionGate";
@@ -13,9 +14,11 @@ import { P } from "@/src/session/permissions";
 import { useFamilies } from "@/hooks/useFamilies";
 import { useAnbiyams, useMandalams } from "@/hooks/useStructure";
 import {
+  FAMILY_STATUS_LABEL,
   RESIDENCE_LABEL,
   VERIFICATION_LABEL,
   cardNumber,
+  familyStatusTone,
   verificationTone,
 } from "@/src/lib/domain-labels";
 import type { Anbiyam, Family, Mandalam, MemberBrief } from "@/src/types";
@@ -23,9 +26,33 @@ import type { Anbiyam, Family, Mandalam, MemberBrief } from "@/src/types";
 const nameOf = (ref: Family["head_member_id"]) =>
   !ref ? "—" : typeof ref === "string" ? "—" : ((ref as MemberBrief).name_ta || (ref as MemberBrief).name);
 
+/**
+ * The Anbiyam a family sits in, linked to its place on the structure page so
+ * the Mandalam above it is one click away rather than a hunt.
+ */
+function AnbiyamCell({ anbiyam }: { anbiyam: Pick<Anbiyam, "_id" | "code" | "name" | "name_ta"> }) {
+  return (
+    <CellLink
+      href={`/structure?anbiyam=${anbiyam._id}`}
+      title="Show this Anbiyam in the parish structure"
+      // The structure page scrolls this Anbiyam into view itself.
+      scroll={false}
+    >
+      {anbiyam.code}
+      {anbiyam.name_ta ? ` · ${anbiyam.name_ta}` : ""}
+    </CellLink>
+  );
+}
+
 function FamiliesList() {
   const params = useSearchParams();
   const page = params.get("page") ?? "1";
+
+  // Absent means active, which is what the API defaults to — the census is the
+  // living parish. Anything else is the archive: families that left, kept with
+  // the code they held, whose slot has since been reissued.
+  const status = params.get("status") ?? "active";
+  const viewingArchive = status !== "active";
 
   const { data, isLoading } = useFamilies({
     q: params.get("q") ?? undefined,
@@ -34,6 +61,7 @@ function FamiliesList() {
     verification_status: params.get("verification_status") ?? undefined,
     residence_status: params.get("residence_status") ?? undefined,
     members_complete: params.get("members_complete") ?? undefined,
+    status,
     page,
   });
   const { data: anbiyamRes } = useAnbiyams();
@@ -56,9 +84,7 @@ function FamiliesList() {
       key: "anbiyam",
       header: "Anbiyam",
       render: (f) =>
-        typeof f.anbiyam_id === "string"
-          ? "—"
-          : `${f.anbiyam_id.code}${f.anbiyam_id.name_ta ? ` · ${f.anbiyam_id.name_ta}` : ""}`,
+        typeof f.anbiyam_id === "string" ? "—" : <AnbiyamCell anbiyam={f.anbiyam_id} />,
     },
     { key: "phone", header: "Phone", secondary: true, render: (f) => f.primary_phone ?? "—" },
     {
@@ -83,11 +109,52 @@ function FamiliesList() {
     },
   ];
 
+  // Only in the archive. On the census every row is active, so the column
+  // would carry the same word 1,755 times.
+  if (viewingArchive) {
+    columns.push({
+      key: "status",
+      header: "Status",
+      render: (f) => (
+        <StatusPill
+          label={FAMILY_STATUS_LABEL[f.status] ?? f.status}
+          tone={familyStatusTone(f.status)}
+        />
+      ),
+    });
+  }
+
   return (
     <>
+      {viewingArchive && (
+        <div
+          className="mb-4 px-4 py-3 rounded-lg text-sm font-medium"
+          style={{ backgroundColor: "#ffddb8", color: "#744800" }}
+        >
+          {status === "all"
+            ? "Showing the census and its history together. A family listed here as anything but active no longer holds its code — the slot may belong to another household now."
+            : "These families have left the parish register. They keep the code they held for reference; the slot itself has been released and may already belong to another household. Read-only."}
+        </div>
+      )}
+
       <FilterBar
-        searchPlaceholder="Search by family code, phone or locality…"
+        searchPlaceholder="Search by head or spouse name, family code, phone or locality…"
         filters={[
+          {
+            key: "status",
+            label: "Status",
+            // Unset is active, not "all" — so say so rather than let the
+            // default wording promise the archive is included.
+            unsetLabel: "Status: Active",
+            options: [
+              { value: "transferred_out", label: "Transferred out" },
+              { value: "closed", label: "Closed" },
+              { value: "merged", label: "Merged" },
+              // The old-paper case: a code read off a 2015 receipt, where
+              // which way the family left is what you are trying to find out.
+              { value: "all", label: "Active and history" },
+            ],
+          },
           {
             key: "anbiyam_id",
             label: "Anbiyam",

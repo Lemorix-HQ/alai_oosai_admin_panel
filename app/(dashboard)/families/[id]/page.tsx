@@ -6,6 +6,7 @@ import PageShell from "@/components/ui/PageShell";
 import StatusPill from "@/components/ui/StatusPill";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { FormCard, Select } from "@/components/ui/Field";
+import FamilyTimeline from "@/components/families/FamilyTimeline";
 import { PermissionGate } from "@/src/session/PermissionGate";
 import { P } from "@/src/session/permissions";
 import { useCloseFamily, useFamily, useRemoveMember, useUpdateFamily } from "@/hooks/useFamilies";
@@ -22,7 +23,18 @@ import {
 } from "@/src/lib/domain-labels";
 import type { Member } from "@/src/types";
 
-function MemberRow({ m, familyId, canEdit }: { m: Member; familyId: string; canEdit: boolean }) {
+function MemberRow({
+  m,
+  familyId,
+  canEdit,
+  readOnly,
+}: {
+  m: Member;
+  familyId: string;
+  canEdit: boolean;
+  /** The family has left the register, so its people are shown but not edited. */
+  readOnly: boolean;
+}) {
   const remove = useRemoveMember(familyId);
   const age = ageFrom(m.date_of_birth);
 
@@ -41,17 +53,49 @@ function MemberRow({ m, familyId, canEdit }: { m: Member; familyId: string; canE
           {m.marital_status && m.marital_status !== "unknown" && ` · ${MARITAL_LABEL[m.marital_status]}`}
           {m.phone && ` · ${m.phone}`}
         </p>
+        {(() => {
+          // Read-only echo of the three activity blocks. Muted once the newest
+          // of them is behind the current year, so a stale record looks stale.
+          const year = new Date().getFullYear();
+          const parts: string[] = [];
+          if (m.schooling && typeof m.schooling.school_id !== "string") {
+            parts.push(
+              [m.schooling.standard, m.schooling.school_id.name].filter(Boolean).join(" · "),
+            );
+          }
+          if (m.college && typeof m.college.college_id !== "string") {
+            parts.push([m.college.degree, m.college.college_id.name].filter(Boolean).join(" · "));
+          }
+          if (m.work && typeof m.work.occupation_id !== "string") {
+            const place =
+              m.work.place_id && typeof m.work.place_id !== "string" ? m.work.place_id.name : null;
+            parts.push([m.work.occupation_id.name, place].filter(Boolean).join(" · "));
+          }
+          if (parts.length === 0) return null;
+          const newest = Math.max(
+            m.schooling?.as_of_year ?? 0,
+            m.college?.as_of_year ?? 0,
+            m.work?.as_of_year ?? 0,
+          );
+          return (
+            <p className={`text-xs ${newest < year ? "text-slate-400" : "text-slate-500"}`}>
+              {parts.join(" / ")} · {newest}
+            </p>
+          );
+        })()}
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {m.status !== "active" && (
           <StatusPill label={MEMBER_STATUS_LABEL[m.status] ?? m.status} tone="neutral" />
         )}
-        <PermissionGate permission={P.member.update}>
-          <Link href={`/members/${m._id}/edit`} className="text-xs font-bold" style={{ color: "#0D5C63" }}>
-            Edit
-          </Link>
-        </PermissionGate>
-        {canEdit && (
+        {!readOnly && (
+          <PermissionGate permission={P.member.update}>
+            <Link href={`/members/${m._id}/edit`} className="text-xs font-bold" style={{ color: "#0D5C63" }}>
+              Edit
+            </Link>
+          </PermissionGate>
+        )}
+        {canEdit && !readOnly && (
           <ConfirmDialog
             trigger={<button className="text-xs font-bold" style={{ color: "#dc2626" }}>Remove</button>}
             title={`Remove ${m.name}?`}
@@ -91,6 +135,10 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
 
   const anbiyam = typeof family.anbiyam_id === "string" ? null : family.anbiyam_id;
   const members = family.members ?? [];
+  const mergedInto =
+    family.merged_into && typeof family.merged_into !== "string" ? family.merged_into : null;
+  /** Left the register: kept for reference, never edited again. */
+  const isHistorical = family.status !== "active";
 
   return (
     <PageShell
@@ -102,35 +150,40 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
       }
       breadcrumb={[{ href: "/families", label: "Families" }, { label: family.family_code }]}
       action={
-        <div className="flex flex-wrap gap-2">
-          <PermissionGate permission={P.member.create}>
-            <Link
-              href={`/families/${id}/members/new`}
-              className="font-bold py-2.5 px-4 rounded-lg border text-sm"
-              style={{ borderColor: "#dce3e9", color: "#0D5C63" }}
-            >
-              Add member
-            </Link>
-          </PermissionGate>
-          <PermissionGate permission={P.family.transfer}>
-            <Link
-              href={`/families/${id}/transfer`}
-              className="font-bold py-2.5 px-4 rounded-lg border text-sm"
-              style={{ borderColor: "#dce3e9", color: "#0D5C63" }}
-            >
-              Transfer
-            </Link>
-          </PermissionGate>
-          <PermissionGate permission={P.family.update}>
-            <Link
-              href={`/families/${id}/edit`}
-              className="font-bold py-2.5 px-5 rounded-lg text-sm shadow-sm"
-              style={{ backgroundColor: "#F59E0B", color: "#0D5C63" }}
-            >
-              Edit
-            </Link>
-          </PermissionGate>
-        </div>
+        // A family that has left is a historical record, so it is shown but
+        // never altered — the API refuses a transfer or close on one, and
+        // editing it would rewrite what a paper record is checked against.
+        isHistorical ? undefined : (
+          <div className="flex flex-wrap gap-2">
+            <PermissionGate permission={P.member.create}>
+              <Link
+                href={`/families/${id}/members/new`}
+                className="font-bold py-2.5 px-4 rounded-lg border text-sm"
+                style={{ borderColor: "#dce3e9", color: "#0D5C63" }}
+              >
+                Add member
+              </Link>
+            </PermissionGate>
+            <PermissionGate permission={P.family.transfer}>
+              <Link
+                href={`/families/${id}/transfer`}
+                className="font-bold py-2.5 px-4 rounded-lg border text-sm"
+                style={{ borderColor: "#dce3e9", color: "#0D5C63" }}
+              >
+                Transfer
+              </Link>
+            </PermissionGate>
+            <PermissionGate permission={P.family.update}>
+              <Link
+                href={`/families/${id}/edit`}
+                className="font-bold py-2.5 px-5 rounded-lg text-sm shadow-sm"
+                style={{ backgroundColor: "#F59E0B", color: "#0D5C63" }}
+              >
+                Edit
+              </Link>
+            </PermissionGate>
+          </div>
+        )
       }
     >
       {error && (
@@ -141,7 +194,16 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
 
       {family.status !== "active" && (
         <div className="mb-4 px-4 py-3 rounded-lg text-sm font-medium" style={{ backgroundColor: "#ffddb8", color: "#744800" }}>
-          This family is {family.status.replace("_", " ")}. Its position {family.serial_in_anbiyam} in{" "}
+          This family is {family.status.replace("_", " ")}
+          {mergedInto && (
+            <>
+              {" into "}
+              <Link href={`/families/${mergedInto._id}`} className="font-mono font-bold underline">
+                {mergedInto.family_code}
+              </Link>
+            </>
+          )}
+          . Its position {family.serial_in_anbiyam} in{" "}
           {anbiyam?.code ?? "the Anbiyam"} has been released and may already belong to another household.
         </div>
       )}
@@ -174,12 +236,13 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
             ) : (
               <ul>
                 {members.map((m) => (
-                  <PermissionGateMemberRow key={m._id} m={m} familyId={id} />
+                  <PermissionGateMemberRow key={m._id} m={m} familyId={id} readOnly={isHistorical} />
                 ))}
               </ul>
             )}
 
             <PermissionGate permission={P.family.update}>
+              {isHistorical ? null : (
               <div className="pt-3 border-t" style={{ borderColor: "#e2e8f0" }}>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: "#596065" }}>
                   Is this member list complete?
@@ -201,6 +264,7 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
                   like a family of two.
                 </p>
               </div>
+              )}
             </PermissionGate>
           </FormCard>
 
@@ -222,25 +286,7 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
             </FormCard>
           )}
 
-          {(family.transfers ?? []).length > 0 && (
-            <FormCard title="Transfer history">
-              <ul className="space-y-3 text-sm">
-                {family.transfers.map((t) => (
-                  <li key={t._id} className="flex flex-wrap items-baseline gap-2">
-                    <span className="font-mono text-xs">{t.old_family_code ?? "—"}</span>
-                    <span className="material-symbols-outlined text-[14px] text-slate-400">arrow_forward</span>
-                    <span className="font-mono text-xs font-bold" style={{ color: "#0D5C63" }}>
-                      {t.new_family_code ?? "—"}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      {new Date(t.effective_on).toLocaleDateString()} · {t.type} · {t.assignment_method.replace("_", " ")}
-                    </span>
-                    {t.reason && <span className="text-xs text-slate-500 w-full">{t.reason}</span>}
-                  </li>
-                ))}
-              </ul>
-            </FormCard>
-          )}
+          <FamilyTimeline familyId={id} />
         </div>
 
         <div className="space-y-4">
@@ -263,19 +309,6 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
             </dl>
           </FormCard>
 
-          {(family.code_history ?? []).length > 0 && (
-            <FormCard
-              title="Previous codes"
-              description="A paper record marked with one of these belongs to this family, not to whoever holds that code today."
-            >
-              <ul className="space-y-1 text-sm font-mono">
-                {family.code_history.map((c, i) => (
-                  <li key={`${c.code}-${i}`}>{c.code}</li>
-                ))}
-              </ul>
-            </FormCard>
-          )}
-
           {family.notes && (
             <FormCard title="Notes">
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{family.notes}</p>
@@ -290,7 +323,7 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
                   The next household added there will be issued this same code.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {(["transferred_out", "closed", "merged"] as const).map((status) => (
+                  {(["transferred_out", "closed"] as const).map((status) => (
                     <ConfirmDialog
                       key={status}
                       trigger={
@@ -311,6 +344,15 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
                       }}
                     />
                   ))}
+                  {/* A merge needs a destination and a decision about the people, so it
+                      gets a form of its own rather than a one-click confirmation. */}
+                  <Link
+                    href={`/families/${id}/merge`}
+                    className="px-3 py-2 rounded-lg border text-xs font-bold"
+                    style={{ borderColor: "#e2e8f0", color: "#dc2626" }}
+                  >
+                    merged
+                  </Link>
                 </div>
               </FormCard>
             </PermissionGate>
@@ -322,13 +364,21 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
 }
 
 /** Split so the delete hook is only mounted for users who can act on it. */
-function PermissionGateMemberRow({ m, familyId }: { m: Member; familyId: string }) {
+function PermissionGateMemberRow({
+  m,
+  familyId,
+  readOnly,
+}: {
+  m: Member;
+  familyId: string;
+  readOnly: boolean;
+}) {
   return (
     <PermissionGate
       permission={P.member.delete}
-      fallback={<MemberRow m={m} familyId={familyId} canEdit={false} />}
+      fallback={<MemberRow m={m} familyId={familyId} canEdit={false} readOnly={readOnly} />}
     >
-      <MemberRow m={m} familyId={familyId} canEdit />
+      <MemberRow m={m} familyId={familyId} canEdit readOnly={readOnly} />
     </PermissionGate>
   );
 }

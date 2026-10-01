@@ -60,6 +60,27 @@ export const MEMBER_STATUS_LABEL: Record<string, string> = {
   religious_vocation: "Religious vocation",
 };
 
+/**
+ * What became of a household. Everything but `active` is history: the family
+ * kept its code as a record while the slot it vacated went to whoever came
+ * next, so these records are read-only.
+ *
+ * Distinct from `residence.status` (resident / migrated / outstation), which
+ * says where a family that is still on the census lives.
+ */
+export const FAMILY_STATUS_LABEL: Record<string, string> = {
+  active: "Active",
+  transferred_out: "Transferred out",
+  closed: "Closed",
+  merged: "Merged",
+};
+
+export function familyStatusTone(status: string): "success" | "warning" | "neutral" {
+  if (status === "active") return "success";
+  if (status === "merged") return "warning";
+  return "neutral";
+}
+
 export function verificationTone(status: string): "success" | "warning" | "neutral" {
   if (status === "verified") return "success";
   if (status === "partially_verified") return "warning";
@@ -128,3 +149,33 @@ export function requestStatusTone(status: string): "success" | "warning" | "dang
 export function roundProgress(verified: number, total?: number | null) {
   return total ? `${verified} / ${total}` : String(verified);
 }
+
+/**
+ * The closed industry list, mirroring OCCUPATION_INDUSTRIES in
+ * `occupation.schema.ts`. A free-text industry cannot be grouped by, and
+ * grouping is the only reason the field exists.
+ */
+export const OCCUPATION_INDUSTRY_LABEL: Record<string, string> = {
+  fishing: "Fishing",
+  agriculture: "Agriculture",
+  construction: "Construction",
+  healthcare: "Healthcare",
+  education: "Education",
+  government: "Government",
+  transport: "Transport",
+  retail: "Retail",
+  hospitality: "Hospitality",
+  it_services: "IT and services",
+  manufacturing: "Manufacturing",
+  domestic: "Domestic",
+  religious: "Religious",
+  other: "Other",
+};
+
+/** Where people from this parish actually go. `country` is a free string on
+ *  Place, so this is a convenience list, not an enum. */
+export const COMMON_COUNTRIES = [
+  "India", "UAE", "Saudi Arabia", "Qatar", "Kuwait", "Oman", "Bahrain",
+  "Singapore", "Malaysia", "Italy", "Ireland", "United Kingdom",
+  "United States", "Canada", "Australia",
+];

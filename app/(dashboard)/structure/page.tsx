@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import PageShell from "@/components/ui/PageShell";
 import StatCard from "@/components/ui/StatCard";
 import StatusPill from "@/components/ui/StatusPill";
@@ -28,10 +29,24 @@ type Panel =
   | { kind: "substation"; initial?: Substation }
   | null;
 
-function AnbiyamChip({ a, onEdit, canEdit }: { a: Anbiyam; onEdit: () => void; canEdit: boolean }) {
+function AnbiyamChip({
+  a,
+  onEdit,
+  canEdit,
+  highlighted,
+}: {
+  a: Anbiyam;
+  onEdit: () => void;
+  canEdit: boolean;
+  /** Arrived here from the Families list looking for this one. */
+  highlighted: boolean;
+}) {
   return (
     <div
-      className="rounded-lg border px-3 py-2 flex items-center justify-between gap-2"
+      id={`anbiyam-${a._id}`}
+      className={`rounded-lg border px-3 py-2 flex items-center justify-between gap-2 ${
+        highlighted ? "anbiyam-highlight" : ""
+      }`}
       style={{ borderColor: "#e2e8f0" }}
     >
       <div className="min-w-0">
@@ -62,7 +77,7 @@ function AnbiyamChip({ a, onEdit, canEdit }: { a: Anbiyam; onEdit: () => void; c
   );
 }
 
-export default function StructurePage() {
+function StructureContent() {
   const { can } = useSession();
   const { data: treeRes, isLoading } = useStructureTree();
   const { data: mandalamRes } = useMandalams({ with_counts: "true" });
@@ -81,6 +96,50 @@ export default function StructurePage() {
 
   const canEditAnbiyam = can(P.structure.anbiyam);
   const canEditMandalam = can(P.structure.mandalam);
+
+  /**
+   * `?anbiyam=<id>` means someone clicked the Anbiyam column in the Families
+   * list. Bring that chip to the middle of the viewport and blink it until
+   * they click, which is what tells us they have found it.
+   *
+   * The chip only exists once the tree has loaded, so this waits on `tree`
+   * rather than running on mount. It scrolls directly rather than inside a
+   * requestAnimationFrame: this effect already runs after paint, so the grid
+   * is laid out, and rAF does not fire at all while the tab is in the
+   * background — which loses the scroll entirely.
+   */
+  const requested = useSearchParams().get("anbiyam");
+  /** Which request the user has already clicked away, not a second copy of it. */
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const highlighted = requested && dismissed !== requested ? requested : null;
+
+  useEffect(() => {
+    if (!highlighted || !tree) return;
+    const chip = document.getElementById(`anbiyam-${highlighted}`);
+    if (!chip) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    chip.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+
+    // Smooth scrolling is driven by the compositor and is skipped outright in
+    // some contexts — a backgrounded tab, most automation. Arriving at the
+    // chip matters more than the animation does, and without this the blink
+    // happens off-screen where nobody sees it, so snap if it did not land.
+    const settle = setTimeout(() => {
+      const box = chip.getBoundingClientRect();
+      if (box.top < 0 || box.bottom > window.innerHeight) {
+        chip.scrollIntoView({ block: "center" });
+      }
+    }, 700);
+
+    const stop = () => setDismissed(highlighted);
+    document.addEventListener("click", stop, { once: true });
+
+    return () => {
+      clearTimeout(settle);
+      document.removeEventListener("click", stop);
+    };
+  }, [highlighted, tree]);
 
   return (
     <PageShell
@@ -198,6 +257,7 @@ export default function StructurePage() {
                       key={a._id}
                       a={a}
                       canEdit={canEditAnbiyam}
+                      highlighted={highlighted === a._id}
                       onEdit={() => setPanel({ kind: "anbiyam", initial: a })}
                     />
                   ))}
@@ -221,6 +281,7 @@ export default function StructurePage() {
                     key={a._id}
                     a={a}
                     canEdit={canEditAnbiyam}
+                    highlighted={highlighted === a._id}
                     onEdit={() => setPanel({ kind: "anbiyam", initial: a })}
                   />
                 ))}
@@ -330,5 +391,13 @@ export default function StructurePage() {
         </div>
       )}
     </PageShell>
+  );
+}
+
+export default function StructurePage() {
+  return (
+    <Suspense fallback={<p className="p-4 sm:p-6 text-sm text-slate-500">Loading structure…</p>}>
+      <StructureContent />
+    </Suspense>
   );
 }

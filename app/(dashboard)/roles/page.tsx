@@ -40,7 +40,17 @@ export default function RolesPage() {
         ),
     },
     { key: "permissions", header: "Permissions", render: (r) => r.permissions.length },
-    { key: "scope_level", header: "Scope", secondary: true, render: (r) => r.scope_level },
+    {
+      key: "scope_level",
+      header: "Scope",
+      secondary: true,
+      // The count, not the level: "anbiyam" told you the kind of answer without
+      // telling you the answer.
+      render: (r) => {
+        const n = r.scope_anbiyam_ids?.length ?? 0;
+        return n === 0 ? "Whole parish" : `${n} Anbiyam${n === 1 ? "" : "s"}`;
+      },
+    },
     { key: "assigned_count", header: "Held by", render: (r) => r.assigned_count ?? 0 },
     {
       key: "status",

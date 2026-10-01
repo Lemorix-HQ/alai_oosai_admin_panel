@@ -83,6 +83,10 @@ function AuditList() {
     <>
       <FilterBar
         searchPlaceholder="Filter by action, e.g. role.assign…"
+        // The only box here that matches a machine key rather than a name.
+        // There is no Tamil `role.assign`, so the toggle could only get in
+        // the way.
+        tamilSearch={false}
         filters={[
           {
             key: "entity",
@@ -92,6 +96,9 @@ function AuditList() {
               { value: "RoleAssignment", label: "Role assignment" },
               { value: "BaseUser", label: "User" },
               { value: "Parish", label: "Parish" },
+              // Households write here too now, so that a family's card can
+              // show what has happened to it.
+              { value: "Family", label: "Family" },
             ],
           },
           {
@@ -108,7 +115,7 @@ function AuditList() {
           <EmptyState
             icon="history"
             title="Nothing recorded yet"
-            description="Role changes, staff creation and parish edits are written here as they happen."
+            description="Role changes, staff creation, parish edits and what happens to a household are written here as they happen."
           />
         ) : (
           <ul>

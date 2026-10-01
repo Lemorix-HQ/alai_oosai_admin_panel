@@ -32,7 +32,14 @@ export interface RolePayload {
   permissions: string[];
   name_ta?: string;
   description?: string;
-  scope_level?: 'parish' | 'mandalam' | 'anbiyam';
+  /**
+   * The Anbiyams this role covers; empty means the whole parish.
+   *
+   * Always sent, even when empty — the server treats an absent field as "leave
+   * the scope alone" and an empty array as "widen it back to the parish", and
+   * clearing the picker has to mean the second.
+   */
+  scope_anbiyam_ids?: string[];
   derived_from_role_id?: string;
 }
 
@@ -69,13 +76,21 @@ export async function getStaffAction(id: string) {
 export interface CreateStaffPayload {
   name: string;
   phone: string;
-  email?: string;
+  /** Required: the invitation goes here and it is what they sign in with. */
+  email: string;
   /** A staff account with no roles can log in and do nothing. */
   role_ids?: string[];
 }
 
 export async function createStaffAction(payload: CreateStaffPayload) {
   return postRequest<CreateStaffPayload, StaffUser>('/staff', payload);
+}
+
+export async function sendStaffInviteAction(id: string, email?: string) {
+  return postRequest<
+    { email?: string },
+    { invited_at: string; expires_at: string; delivered: boolean; invite_url?: string }
+  >(`/staff/${id}/invite`, email ? { email } : {});
 }
 
 export interface AssignRolePayload {

@@ -1,5 +1,6 @@
 'use server';
 
+import { AUTH_COOKIE } from '@/src/session/cookie';
 import { cookies } from 'next/headers';
 import { getRequest } from '@/services/api';
 import type { SessionUser } from '@/src/types';
@@ -13,7 +14,7 @@ import type { SessionUser } from '@/src/types';
  * why it may drive what the UI SHOWS and never what the server ALLOWS.
  */
 export async function getSession(): Promise<SessionUser | null> {
-  const token = (await cookies()).get('admin_token')?.value;
+  const token = (await cookies()).get(AUTH_COOKIE)?.value;
   if (!token) return null;
 
   const res = await getRequest<undefined, SessionUser>('/auth/me');
