@@ -1,0 +1,49 @@
+name: build and push
+
+# The factory, not the delivery van. This builds an image and leaves it in the
+# registry; nothing here can reach the server, which has no key, no password
+# and no address stored in GitHub. The server collects the image itself with
+# `docker compose pull`.
+
+on:
+  push:
+    branches: [main]
+  # So an image can be built from a branch before main is current.
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # What allows the automatic GITHUB_TOKEN to push to ghcr.io. No secret
+      # of your own is created or stored for this.
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Actions runs amd64 and the server is amd64, so the Apple Silicon
+          # Mac never enters the equation.
+          platforms: linux/amd64
+          # Two tags per build. :latest is the everyday pull; the commit SHA is
+          # an immutable pointer at one revision, which turns a bad deploy into
+          # a thirty-second rollback — point the compose file at yesterday's
+          # SHA and pull.
+          tags: |
+            ghcr.io/lemorixhq/alai-oosai-admin:latest
+            ghcr.io/lemorixhq/alai-oosai-admin:${{ github.sha }}
+          # Docker's layer cache kept in GitHub, so npm ci is reused between
+          # runs: about five minutes becomes about ninety seconds.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
