@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import SearchInput from "@/components/ui/SearchInput";
 import { useCreateLookup, useLookup } from "@/hooks/useLookups";
 import type { LookupKind, LookupRow } from "@/actions/lookups.actions";
 
@@ -50,7 +51,10 @@ export default function LookupCombobox({
   const [open, setOpen] = useState(false);
   const [justPicked, setJustPicked] = useState<string | null>(null);
   const [choice, setChoice] = useState<string>(createChoice?.options[0]?.value ?? "");
-  const { data } = useLookup(kind, term || undefined);
+  // Trimmed for the same reason the filter bar trims: `name_ta` is matched on
+  // an unanchored regex, and committing a transliterated word leaves a
+  // trailing space that then matches nothing.
+  const { data } = useLookup(kind, term.trim() || undefined);
   const create = useCreateLookup(kind);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,7 +92,8 @@ export default function LookupCombobox({
 
   return (
     <div className="relative">
-      <input
+      <SearchInput
+        withIcon={false}
         value={open ? term : shown}
         onChange={(e) => {
           setTerm(e.target.value);
@@ -98,8 +103,6 @@ export default function LookupCombobox({
         // Delayed so a click on an option lands before the list unmounts.
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder={placeholder}
-        className="w-full px-3 py-2.5 rounded-lg border bg-white text-sm outline-none focus:ring-2"
-        style={{ borderColor: "#dce3e9" }}
       />
 
       {open && (

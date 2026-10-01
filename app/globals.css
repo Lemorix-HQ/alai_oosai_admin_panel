@@ -142,10 +142,44 @@ body {
     transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  /* The room the language toggle needs is given back while the box is closed.
+     `box-sizing: border-box` cannot shrink a field below its own padding, so
+     the toggle's 4rem on the right would hold the field at 106px whatever
+     `width` asked for — and the box is `relative`, so those extra pixels
+     painted over the Status select next to it. The toggle is faded out at
+     rest anyway; it only needs the room once the box is open. */
+  .search-slide input {
+    padding-right: 0.75rem;
+    transition: padding-right 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .search-slide:hover input,
+  .search-slide:focus-within input,
+  .search-slide[data-open="true"] input {
+    padding-right: 4rem;
+  }
+
   .search-slide:hover,
   .search-slide:focus-within,
   .search-slide[data-open="true"] {
     width: 24rem;
+  }
+
+  /* The Tamil/English toggle sits inside the box, so at rest — 2.75rem, the
+     magnifier alone — it would be sitting on top of the magnifier. It fades in
+     with the box rather than being hidden, so that `focus-within` still holds
+     the box open while the toggle itself has focus. */
+  .search-slide .search-lang {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+
+  .search-slide:hover .search-lang,
+  .search-slide:focus-within .search-lang,
+  .search-slide[data-open="true"] .search-lang {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 

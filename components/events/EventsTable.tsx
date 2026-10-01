@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import SearchInput from "@/components/ui/SearchInput";
 import { useAdminEvents, useDeleteEvent } from "@/src/hooks/useEvents";
 import { Event } from "@/src/types";
 import { formatDate } from "@/lib/utils";
@@ -70,19 +71,12 @@ export default function EventsTable({ initialEvents }: EventsTableProps) {
         style={{ borderColor: "#e2e8f0" }}
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              search
-            </span>
-            <input
-              className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm outline-none"
-              style={{ borderColor: "#e2e8f0" }}
-              placeholder="Search events..."
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <SearchInput
+            placeholder="Search events..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ borderColor: "#e2e8f0" }}
+          />
           <div className="flex items-center gap-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Type
