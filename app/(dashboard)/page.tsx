@@ -56,12 +56,18 @@ export default async function DashboardPage() {
             icon="home"
             href="/families"
           />
-          <StatCard
-            label="Members"
-            value={(stats?.memberCount ?? 0).toLocaleString()}
-            icon="groups"
-            href="/members"
-          />
+          {/* Only the parish stats carry a member count; the structure tree has
+              never had one. Someone without parish.read therefore has no
+              number here, and printing 0 said "none" when it meant "unknown" —
+              visible now that a scoped role is a normal way to sign in. */}
+          {stats && (
+            <StatCard
+              label="Members"
+              value={stats.memberCount.toLocaleString()}
+              icon="groups"
+              href="/members"
+            />
+          )}
           <StatCard
             label="Anbiyams"
             value={stats?.anbiyamCount ?? tree?.totals.anbiyams ?? 0}
