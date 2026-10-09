@@ -35,6 +35,7 @@ export const NAVIGATION: NavSection[] = [
       { href: '/families', icon: 'home', label: 'Families', anyOf: [P.family.read] },
       { href: '/members', icon: 'groups', label: 'Members', anyOf: [P.member.read] },
       { href: '/visits', icon: 'directions_walk', label: 'Visits', anyOf: [P.visit.read] },
+      { href: '/submissions', icon: 'drafts', label: 'From families', anyOf: [P.request.verify] },
       { href: '/requests', icon: 'how_to_reg', label: 'Change Requests', anyOf: [P.request.read] },
     ],
   },

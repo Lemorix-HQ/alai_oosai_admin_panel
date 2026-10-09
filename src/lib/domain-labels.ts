@@ -167,6 +167,31 @@ export const REQUEST_STATUS_LABEL: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
+/**
+ * A whole sitting's status, rolled up from its own requests.
+ *
+ * `partially_applied` has no per-request equivalent: it means some changes went
+ * in and some could not, which is a state the group apply records rather than
+ * rolls back.
+ */
+export const SUBMISSION_STATUS_LABEL: Record<string, string> = {
+  pending: "Sent in, awaiting the door step",
+  under_verification: "Seen at the door, awaiting approval",
+  approved: "Approved, not yet applied",
+  applied: "Applied",
+  partially_applied: "Partly applied — some changes could not go in",
+  rejected: "Rejected",
+};
+
+export function submissionStatusTone(status: string): "success" | "warning" | "danger" | "info" | "neutral" {
+  if (status === "applied") return "success";
+  if (status === "approved") return "info";
+  if (status === "partially_applied") return "danger";
+  if (status === "pending" || status === "under_verification") return "warning";
+  if (status === "rejected") return "danger";
+  return "neutral";
+}
+
 export function requestStatusTone(status: string): "success" | "warning" | "danger" | "info" | "neutral" {
   if (status === "applied") return "success";
   if (status === "approved") return "info";

@@ -17,6 +17,10 @@ import {
   rejectChangeRequestAction,
   updateVisitRoundAction,
   verifyChangeRequestAction,
+  decideSubmissionAction,
+  getSubmissionAction,
+  listSubmissionsAction,
+  type SubmissionQuery,
   type ApplyPayload,
   type ChangeRequestQuery,
   type CreateVisitRoundPayload,
@@ -159,6 +163,47 @@ export function useCancelChangeRequest(id: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['change-request', id] });
       qc.invalidateQueries({ queryKey: ['change-requests'] });
+    },
+  });
+}
+
+// ------------------------------------------------ self-service submissions
+
+export function useSubmissions(query: SubmissionQuery = {}) {
+  return useQuery({
+    queryKey: ['submissions', query],
+    queryFn: () => listSubmissionsAction(query),
+    staleTime: 15 * 1000,
+  });
+}
+
+export function useSubmission(id: string) {
+  return useQuery({
+    queryKey: ['submission', id],
+    queryFn: () => getSubmissionAction(id),
+    enabled: !!id,
+  });
+}
+
+/**
+ * All four group decisions move the same row and the requests under it, so they
+ * share an invalidation — including `families` and `members`, because applying
+ * a sitting writes to both, and `visit-round`, because the worksheet flags
+ * households that still have one waiting.
+ */
+export function useDecideSubmission(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { action: 'verify' | 'approve' | 'reject' | 'apply'; note?: string }) =>
+      decideSubmissionAction(id, vars.action, vars.note ? { decision_note: vars.note } : {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['submission', id] });
+      qc.invalidateQueries({ queryKey: ['submissions'] });
+      qc.invalidateQueries({ queryKey: ['change-requests'] });
+      qc.invalidateQueries({ queryKey: ['visit-round'] });
+      qc.invalidateQueries({ queryKey: ['families'] });
+      qc.invalidateQueries({ queryKey: ['family'] });
+      qc.invalidateQueries({ queryKey: ['audit'] });
     },
   });
 }

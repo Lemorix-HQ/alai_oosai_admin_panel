@@ -487,10 +487,19 @@ export interface FamilyVisit {
 
 /** GET /visit-rounds/:id — the round, what was done, and what is left. */
 export interface VisitRoundDetail extends VisitRound {
-  visits: FamilyVisit[];
+  /**
+   * `pending_submissions` is on both lists: how many sittings at the public
+   * form this household has waiting. The whole point of the self-service work
+   * is that a faculty member knows before knocking.
+   */
+  visits: Array<FamilyVisit & { pending_submissions?: number }>;
   outstanding: Array<
-    Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone' | 'verification_status'>
+    Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone' | 'verification_status'> & {
+      pending_submissions?: number;
+    }
   >;
+  /** How many households in this round have sent something in. */
+  pending_submission_families?: number;
 }
 
 // ----------------------------------------------------------- change requests

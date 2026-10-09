@@ -3,6 +3,9 @@
 import { getRequest, patchRequest, postRequest } from '@/services/api';
 import type {
   ChangeRequest,
+  SubmissionDecisionResult,
+  SubmissionDetail,
+  SelfServiceSubmission,
   ChangeRequestType,
   FamilyVisit,
   Paged,
@@ -147,4 +150,40 @@ export async function applyChangeRequestAction(id: string, payload: ApplyPayload
 
 export async function cancelChangeRequestAction(id: string) {
   return postRequest<Record<string, never>, ChangeRequest>(`/change-requests/${id}/cancel`, {});
+}
+
+// ------------------------------------------------ self-service submissions
+
+export interface SubmissionQuery {
+  status?: string;
+  family_id?: string;
+  anbiyam_id?: string;
+  page?: string;
+  limit?: string;
+}
+
+export async function listSubmissionsAction(query: SubmissionQuery = {}) {
+  return getRequest<SubmissionQuery, Paged<SelfServiceSubmission>>('/submissions', query);
+}
+
+export async function getSubmissionAction(id: string) {
+  return getRequest<undefined, SubmissionDetail>(`/submissions/${id}`);
+}
+
+/**
+ * Verify, approve, reject or apply every change in one sitting.
+ *
+ * The server loops its own per-request methods, so each change still gets its
+ * own status guard and audit line — and a change already past that step is
+ * skipped rather than failing the group.
+ */
+export async function decideSubmissionAction(
+  id: string,
+  action: 'verify' | 'approve' | 'reject' | 'apply',
+  payload: DecisionPayload = {},
+) {
+  return postRequest<DecisionPayload, SubmissionDecisionResult>(
+    `/submissions/${id}/${action}`,
+    payload,
+  );
 }
