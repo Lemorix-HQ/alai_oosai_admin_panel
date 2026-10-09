@@ -18,6 +18,13 @@ FROM node:22-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+# Next's standalone server binds `process.env.HOSTNAME || '0.0.0.0'`
+# (server.js:9), and Docker sets HOSTNAME to the container id on every
+# container — so that fallback never fires and the server would listen on eth0
+# ONLY. Loopback stays unbound, and the HEALTHCHECK below, which probes
+# 127.0.0.1, gets ECONNREFUSED on a panel that is serving pages perfectly well.
+# This is the published setting for `output: "standalone"` in Docker.
+ENV HOSTNAME=0.0.0.0
 
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
