@@ -9,6 +9,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import TamilInput from "@/components/ui/TamilInput";
 import TamilTextarea from "@/components/ui/TamilTextarea";
 import LanguageToggle from "@/components/ui/LanguageToggle";
+import { LangBadge } from "@/components/ui/Field";
+import DateInput from "@/components/ui/DateInput";
 
 export default function EditEventPage() {
   const router = useRouter();
@@ -176,7 +178,7 @@ export default function EditEventPage() {
                 <div>
                   <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>
                     Event Title <span style={{ color: "#a83836" }}>*</span>
-                  </label>
+                  {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                   <TamilInput
                     tamilMode={tamilMode}
                     className="w-full rounded-lg px-4 py-2.5 border outline-none"
@@ -192,14 +194,14 @@ export default function EditEventPage() {
                   <div>
                     <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Date <span style={{ color: "#a83836" }}>*</span></label>
                     <div className="relative">
-                      <input
-                        className="w-full rounded-lg pl-10 pr-4 py-2.5 border outline-none"
+                      <DateInput
+                        className="w-full rounded-lg px-4 py-2.5 border outline-none"
                         style={{ borderColor: fieldError("date") ? "#a83836" : "#abb3b9", backgroundColor: "#ffffff" }}
-                        name="date" type="date"
+                        name="date"
                         value={formik.values.date}
-                        onChange={formik.handleChange} onBlur={formik.handleBlur}
+                        onValueChange={(iso) => formik.setFieldValue("date", iso)}
+                        onBlur={formik.handleBlur}
                       />
-                      <span className="material-symbols-outlined absolute left-3 top-2.5" style={{ fontSize: "20px", color: "#abb3b9" }}>calendar_today</span>
                     </div>
                     {fieldError("date") && <p className="text-xs mt-1" style={{ color: "#a83836" }}>{fieldError("date")}</p>}
                   </div>
@@ -220,7 +222,7 @@ export default function EditEventPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Location/Place <span style={{ color: "#a83836" }}>*</span></label>
+                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Location/Place <span style={{ color: "#a83836" }}>*</span>{" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                   <div className="relative">
                     <TamilInput
                       tamilMode={tamilMode}
@@ -237,7 +239,7 @@ export default function EditEventPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Conductor Name <span style={{ color: "#a83836" }}>*</span></label>
+                    <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Conductor Name <span style={{ color: "#a83836" }}>*</span>{" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                     <TamilInput
                       tamilMode={tamilMode}
                       className="w-full rounded-lg px-4 py-2.5 border outline-none"
@@ -249,7 +251,7 @@ export default function EditEventPage() {
                     {fieldError("conductorName") && <p className="text-xs mt-1" style={{ color: "#a83836" }}>{fieldError("conductorName")}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Event Type</label>
+                    <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Event Type{" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                     <select
                       className="w-full rounded-lg px-4 py-2.5 border outline-none"
                       style={{ borderColor: "#abb3b9", backgroundColor: "#ffffff" }}
@@ -263,7 +265,7 @@ export default function EditEventPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Tags</label>
+                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Tags{" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                   <TamilInput
                     tamilMode={tamilMode}
                     className="w-full rounded-lg px-4 py-2.5 border outline-none"
@@ -274,7 +276,7 @@ export default function EditEventPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>CTA Text</label>
+                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>CTA Text{" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                   <TamilInput
                     tamilMode={tamilMode}
                     className="w-full rounded-lg px-4 py-2.5 border outline-none"
@@ -288,7 +290,7 @@ export default function EditEventPage() {
               {/* Right Column */}
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Description <span style={{ color: "#a83836" }}>*</span></label>
+                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#596065" }}>Description <span style={{ color: "#a83836" }}>*</span>{" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                   <TamilTextarea
                     tamilMode={tamilMode}
                     className="w-full rounded-lg px-4 py-2.5 border outline-none"

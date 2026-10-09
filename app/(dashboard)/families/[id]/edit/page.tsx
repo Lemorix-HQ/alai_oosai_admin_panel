@@ -127,13 +127,13 @@ function EditForm({ family }: { family: FamilyDetail }) {
               <option value="unknown">Unknown</option>
             </Select>
           </Field>
-          <Field label="Currently at" hint="Where they are now, if not in the parish.">
+          <Field label="Currently at" lang="tamil" hint="Where they are now, if not in the parish.">
             <TamilTextInput value={v.current_place} onChange={(e) => setV({ ...v, current_place: e.target.value })} />
           </Field>
-          <Field label="Locality">
+          <Field label="Locality" lang="tamil">
             <TamilTextInput value={v.locality} onChange={(e) => setV({ ...v, locality: e.target.value })} />
           </Field>
-          <Field label="House note">
+          <Field label="House note" lang="tamil">
             <TamilTextInput value={v.house_note} onChange={(e) => setV({ ...v, house_note: e.target.value })} />
           </Field>
         </div>
@@ -141,13 +141,13 @@ function EditForm({ family }: { family: FamilyDetail }) {
 
       <FormCard title="Address">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Line 1">
+          <Field label="Line 1" lang="tamil">
             <TamilTextInput value={v.line1} onChange={(e) => setV({ ...v, line1: e.target.value })} />
           </Field>
-          <Field label="Street">
+          <Field label="Street" lang="tamil">
             <TamilTextInput value={v.street} onChange={(e) => setV({ ...v, street: e.target.value })} />
           </Field>
-          <Field label="Town / village">
+          <Field label="Town / village" lang="tamil">
             <TamilTextInput value={v.town} onChange={(e) => setV({ ...v, town: e.target.value })} />
           </Field>
           <Field label="District">
@@ -186,7 +186,7 @@ function EditForm({ family }: { family: FamilyDetail }) {
             </label>
           ))}
         </div>
-        <Field label="Notes">
+        <Field label="Notes" lang="tamil">
           <TamilTextArea rows={3} value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
         </Field>
       </FormCard>

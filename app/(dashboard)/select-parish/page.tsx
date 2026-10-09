@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSwitchParish, useParishes } from "@/hooks/useParishes";
+import { formatDate } from "@/lib/utils";
 
 export default function SelectParishPage() {
   const router = useRouter();
@@ -111,7 +112,7 @@ export default function SelectParishPage() {
                   </h4>
                   {v.createdAt && (
                     <p className="text-xs text-slate-400 mt-1">
-                      Created {new Date(v.createdAt).toLocaleDateString()}
+                      Created {formatDate(v.createdAt)}
                     </p>
                   )}
                 </div>

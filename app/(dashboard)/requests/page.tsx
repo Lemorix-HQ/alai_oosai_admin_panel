@@ -17,9 +17,7 @@ import {
   requestStatusTone,
 } from "@/src/lib/domain-labels";
 import type { ChangeRequest } from "@/src/types";
-
-const onDate = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+import { formatDateOr } from "@/lib/utils";
 
 const familyOf = (ref: ChangeRequest["family_id"]) =>
   !ref ? "—" : typeof ref === "string" ? "—" : ref.family_code;
@@ -49,7 +47,7 @@ function RequestsList() {
       render: (r) => CHANGE_REQUEST_TYPE_LABEL[r.type] ?? r.type,
     },
     { key: "requester", header: "Raised by", secondary: true, render: (r) => r.requester_name || "—" },
-    { key: "raised", header: "Raised", secondary: true, render: (r) => onDate(r.createdAt) },
+    { key: "raised", header: "Raised", secondary: true, render: (r) => formatDateOr(r.createdAt) },
     {
       key: "status",
       header: "Status",

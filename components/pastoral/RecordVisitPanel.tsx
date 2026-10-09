@@ -3,7 +3,7 @@
 import { useState } from "react";
 import SlideOver from "@/components/ui/SlideOver";
 import StatusPill from "@/components/ui/StatusPill";
-import { Field, FormActions, Select, TamilTextArea, TextInput } from "@/components/ui/Field";
+import { DateInput, Field, FormActions, Select, TamilTextArea, TextInput } from "@/components/ui/Field";
 import MemberFields, {
   emptyMember,
   memberActivityError,
@@ -225,7 +225,7 @@ export default function RecordVisitPanel({
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">The visit</h3>
 
         <Field label="Date of visit" required>
-          <TextInput type="date" value={visitDate} onChange={(e) => setVisitDate(e.target.value)} />
+          <DateInput value={visitDate} onValueChange={setVisitDate} />
         </Field>
 
         <Field label="Outcome" required>
@@ -262,7 +262,7 @@ export default function RecordVisitPanel({
           <TextInput value={acknowledgement} onChange={(e) => setAcknowledgement(e.target.value)} />
         </Field>
 
-        <Field label="Notes">
+        <Field label="Notes" lang="tamil">
           <TamilTextArea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </Field>
 

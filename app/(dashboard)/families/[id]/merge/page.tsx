@@ -222,7 +222,7 @@ export default function MergeFamilyPage({ params }: { params: Promise<{ id: stri
         </FormCard>
 
         <FormCard title="Confirm">
-          <Field label="Reason">
+          <Field label="Reason" lang="tamil">
             <TamilTextArea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
           </Field>
           <Field label={`Type ${family.family_code} to confirm`} required>

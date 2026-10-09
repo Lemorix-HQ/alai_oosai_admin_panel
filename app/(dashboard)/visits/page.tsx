@@ -14,14 +14,12 @@ import { useVisitRounds } from "@/hooks/usePastoral";
 import { useAnbiyams } from "@/hooks/useStructure";
 import { roundProgress } from "@/src/lib/domain-labels";
 import type { Anbiyam, VisitRound } from "@/src/types";
+import { formatDateOr } from "@/lib/utils";
 
 const anbiyamOf = (ref: VisitRound["anbiyam_id"]) =>
   typeof ref === "string"
     ? "—"
     : `${ref.code}${ref.name_ta ? ` · ${ref.name_ta}` : ref.name ? ` · ${ref.name}` : ""}`;
-
-const onDate = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 function RoundsList() {
   const params = useSearchParams();
@@ -45,7 +43,7 @@ function RoundsList() {
       render: (r) => <span className="font-semibold">{anbiyamOf(r.anbiyam_id)}</span>,
     },
     { key: "label", header: "Round", render: (r) => r.label || "—" },
-    { key: "date", header: "Visited on", render: (r) => onDate(r.round_date) },
+    { key: "date", header: "Visited on", render: (r) => formatDateOr(r.round_date) },
     {
       key: "progress",
       header: "Verified",

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import PageShell from "@/components/ui/PageShell";
-import { Field, FormActions, FormCard, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
+import { DateInput, Field, FormActions, FormCard, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
 import { useSession } from "@/src/session/SessionProvider";
 import { useFamilies } from "@/hooks/useFamilies";
 import { useRaiseChangeRequest } from "@/hooks/usePastoral";
@@ -144,10 +144,10 @@ function RaiseForm() {
 
         {type === "add_member" ? (
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Name in Tamil">
+            <Field label="Name in Tamil" lang="tamil">
               <TamilTextInput value={nameTa} onChange={(e) => setNameTa(e.target.value)} />
             </Field>
-            <Field label="Name in English">
+            <Field label="Name in English" lang="english">
               <TextInput value={name} onChange={(e) => setName(e.target.value)} />
             </Field>
             <Field label="Gender" required>
@@ -172,19 +172,19 @@ function RaiseForm() {
               </Select>
             </Field>
             <Field label="Date of birth">
-              <TextInput type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              <DateInput value={dob} onValueChange={setDob} />
             </Field>
           </div>
         ) : (
           <Field
-            label="Details"
+            label="Details" lang="tamil"
             hint="What should change, in your own words. The priest decides what is actually done."
           >
             <TamilTextArea rows={3} value={details} onChange={(e) => setDetails(e.target.value)} />
           </Field>
         )}
 
-        <Field label="Reason">
+        <Field label="Reason" lang="tamil">
           <TamilTextArea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
         </Field>
       </FormCard>

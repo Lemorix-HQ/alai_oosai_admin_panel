@@ -21,11 +21,7 @@ import {
   requestStatusTone,
 } from "@/src/lib/domain-labels";
 import type { ChangeRequest } from "@/src/types";
-
-const onDate = (iso?: string | null) =>
-  iso
-    ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-    : "—";
+import { formatDateOr, formatIfDate } from "@/lib/utils";
 
 const familyOf = (ref: ChangeRequest["family_id"]) =>
   !ref ? null : typeof ref === "string" ? null : ref;
@@ -158,11 +154,11 @@ export default function ChangeRequestPage({ params }: { params: Promise<{ id: st
             </div>
             <div>
               <dt className="text-xs text-slate-500">Raised on</dt>
-              <dd>{onDate(request.createdAt)}</dd>
+              <dd>{formatDateOr(request.createdAt)}</dd>
             </div>
             <div>
               <dt className="text-xs text-slate-500">Verified on</dt>
-              <dd>{onDate(request.verified_on)}</dd>
+              <dd>{formatDateOr(request.verified_on)}</dd>
             </div>
           </dl>
 
@@ -180,7 +176,7 @@ export default function ChangeRequestPage({ params }: { params: Promise<{ id: st
                 {Object.entries(request.payload).map(([key, value]) => (
                   <div key={key} className="flex gap-2">
                     <dt className="text-slate-500 min-w-40">{key.replace(/_/g, " ")}</dt>
-                    <dd className="font-medium">{String(value)}</dd>
+                    <dd className="font-medium">{formatIfDate(value)}</dd>
                   </div>
                 ))}
               </dl>
@@ -199,7 +195,7 @@ export default function ChangeRequestPage({ params }: { params: Promise<{ id: st
           <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Decision</h2>
 
-            <Field label="Note" hint="Recorded on the request and kept with it.">
+            <Field label="Note" lang="tamil" hint="Recorded on the request and kept with it.">
               <TamilTextArea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
             </Field>
 
