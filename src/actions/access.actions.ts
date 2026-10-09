@@ -41,6 +41,12 @@ export interface RolePayload {
    */
   scope_anbiyam_ids?: string[];
   derived_from_role_id?: string;
+  /**
+   * Retiring a role and bringing it back. Update only — a new role is always
+   * active. Sending 'inactive' answers to the same "is anyone still holding
+   * it" check that the Deactivate action makes.
+   */
+  status?: 'active' | 'inactive';
 }
 
 export async function createRoleAction(payload: RolePayload) {

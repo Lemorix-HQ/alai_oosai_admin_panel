@@ -317,6 +317,9 @@ export interface Role {
   status: 'active' | 'inactive';
   /** Attached by the list endpoint. */
   assigned_count?: number;
+  /** Also attached by the list endpoint. Null for the seeded roles, which
+   *  nobody created in the panel. */
+  created_by_name?: string | null;
 }
 
 export interface PermissionCatalogue {
@@ -341,13 +344,21 @@ export interface RoleAssignment {
   revoked_on?: string | null;
 }
 
+/** BaseUser.status, as the schema enumerates it. */
+export type UserStatus =
+  | 'active'
+  | 'inactive'
+  | 'banned'
+  | 'verification_pending'
+  | 'not_registered';
+
 export interface StaffUser {
   _id: string;
   name: string;
   phone?: string | null;
   email?: string | null;
   account_type: 'super_admin' | 'parish_staff' | 'parishioner';
-  status: 'active' | 'inactive' | 'banned' | 'verification_pending' | 'not_registered';
+  status: UserStatus;
   parish_id?: string | null;
   member_id?: string | null;
   last_login_at?: string | null;
@@ -357,6 +368,9 @@ export interface StaffUser {
   password_set_at?: string | null;
   createdAt?: string;
   assignments: RoleAssignment[];
+  /** Attached by the list endpoint, read out of the audit trail — BaseUser
+   *  itself records no creator. Null for an account created outside the panel. */
+  created_by_name?: string | null;
 }
 
 export interface StaffDetail extends StaffUser {

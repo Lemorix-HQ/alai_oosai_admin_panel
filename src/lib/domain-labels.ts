@@ -81,6 +81,36 @@ export function familyStatusTone(status: string): "success" | "warning" | "neutr
   return "neutral";
 }
 
+/**
+ * How a user account's status reads.
+ *
+ * Only `active` means "this account can be used". The other four are not
+ * interchangeable, so they do not share a colour: not being able to sign in
+ * YET is amber, having been shut out is red.
+ *
+ * This was written inline on four screens, each mapping everything past
+ * not_registered to grey — so a banned account looked exactly like one that had
+ * simply never been invited. The profile page had it worse: a hard-coded
+ * "Active" pill that read nothing at all.
+ */
+export function userStatusTone(
+  status?: string | null,
+): "success" | "warning" | "danger" | "neutral" {
+  switch (status) {
+    case "active":
+      return "success";
+    case "not_registered":
+    case "verification_pending":
+      return "warning";
+    case "inactive":
+    case "banned":
+      return "danger";
+    // The enum is closed, so anything else is a data error rather than a state.
+    default:
+      return "neutral";
+  }
+}
+
 export function verificationTone(status: string): "success" | "warning" | "neutral" {
   if (status === "verified") return "success";
   if (status === "partially_verified") return "warning";
