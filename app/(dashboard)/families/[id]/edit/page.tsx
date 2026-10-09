@@ -22,8 +22,6 @@ function EditForm({ family }: { family: FamilyDetail }) {
   const [v, setV] = useState({
     primary_phone: family.primary_phone ?? "",
     card_year: family.card_year ? String(family.card_year) : "",
-    locality: family.locality ?? "",
-    house_note: family.house_note ?? "",
     residence_status: (family.residence?.status ?? "resident") as string,
     current_place: family.residence?.current_place ?? "",
     line1: family.address?.line1 ?? "",
@@ -53,8 +51,6 @@ function EditForm({ family }: { family: FamilyDetail }) {
     const res = await update.mutateAsync({
       primary_phone: v.primary_phone.trim() || undefined,
       card_year: v.card_year ? Number(v.card_year) : undefined,
-      locality: v.locality.trim() || undefined,
-      house_note: v.house_note.trim() || undefined,
       residence: {
         status: v.residence_status as "resident",
         current_place: v.current_place.trim() || undefined,
@@ -129,12 +125,6 @@ function EditForm({ family }: { family: FamilyDetail }) {
           </Field>
           <Field label="Currently at" lang="tamil" hint="Where they are now, if not in the parish.">
             <TamilTextInput value={v.current_place} onChange={(e) => setV({ ...v, current_place: e.target.value })} />
-          </Field>
-          <Field label="Locality" lang="tamil">
-            <TamilTextInput value={v.locality} onChange={(e) => setV({ ...v, locality: e.target.value })} />
-          </Field>
-          <Field label="House note" lang="tamil">
-            <TamilTextInput value={v.house_note} onChange={(e) => setV({ ...v, house_note: e.target.value })} />
           </Field>
         </div>
       </FormCard>

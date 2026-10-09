@@ -141,7 +141,6 @@ export interface MemberCollege {
 export interface MemberWork {
   occupation_id: Ref<Pick<Occupation, '_id' | 'name' | 'name_ta' | 'industry'>>;
   place_id?: PlaceRef;
-  nature_of_work?: string;
   as_of_year: number;
 }
 
@@ -261,8 +260,6 @@ export interface Family {
   spouse_member_id?: Ref<MemberBrief> | null;
   primary_phone?: string;
   address?: Address;
-  locality?: string;
-  house_note?: string;
   residence: Residence;
   pastoral_flags: PastoralFlag[];
   notes?: string;
@@ -472,7 +469,7 @@ export interface FamilyVisit {
   _id: string;
   parish_id: string;
   anbiyam_id: Ref<Pick<Anbiyam, '_id' | 'code' | 'name_ta'>>;
-  family_id: Ref<Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone'>>;
+  family_id: Ref<Pick<Family, '_id' | 'family_code' | 'primary_phone'>>;
   round_id?: string | null;
   visit_date: string;
   visited_by_user_id?: string | null;
@@ -494,7 +491,7 @@ export interface VisitRoundDetail extends VisitRound {
    */
   visits: Array<FamilyVisit & { pending_submissions?: number }>;
   outstanding: Array<
-    Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone' | 'verification_status'> & {
+    Pick<Family, '_id' | 'family_code' | 'primary_phone' | 'verification_status'> & {
       pending_submissions?: number;
     }
   >;
@@ -525,7 +522,7 @@ export type ChangeRequestStatus =
 export interface ChangeRequest {
   _id: string;
   parish_id: string;
-  family_id?: Ref<Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone'>> | null;
+  family_id?: Ref<Pick<Family, '_id' | 'family_code' | 'primary_phone'>> | null;
   anbiyam_id?: Ref<Pick<Anbiyam, '_id' | 'code' | 'name' | 'name_ta'>> | null;
   type: ChangeRequestType;
   requested_by_user_id?: string | null;
@@ -627,8 +624,6 @@ export interface HouseholdSnapshot {
     family_code: string;
     card_year: number | null;
     primary_phone: string | null;
-    locality: string | null;
-    house_note: string | null;
     address?: Address | null;
     residence?: Residence | null;
   };
@@ -682,7 +677,6 @@ export interface HouseholdCollegeInput {
 }
 export interface HouseholdWorkInput {
   occupation_id: string;
-  nature_of_work?: string;
   place_id?: string;
   as_of_year: number;
 }
@@ -717,8 +711,6 @@ export interface SubmitSittingPayload {
   note?: string;
   family?: {
     primary_phone?: string;
-    locality?: string;
-    house_note?: string;
   };
   members?: {
     member_id: string;
@@ -752,7 +744,7 @@ export type SubmissionStatus =
  */
 export interface SelfServiceSubmission {
   _id: string;
-  family_id?: Ref<Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone'>> | null;
+  family_id?: Ref<Pick<Family, '_id' | 'family_code' | 'primary_phone'>> | null;
   anbiyam_id?: Ref<Pick<Anbiyam, '_id' | 'code' | 'name' | 'name_ta'>> | null;
   submitted_at: string;
   submitter_name: string;

@@ -116,7 +116,6 @@ export interface ActivityDraft {
   standard: string;
   course_year: string;
   degree: string;
-  nature_of_work: string;
   as_of_year: number;
 }
 
@@ -132,7 +131,6 @@ export function emptyActivity(): ActivityDraft {
     standard: "",
     course_year: "",
     degree: "",
-    nature_of_work: "",
     as_of_year: new Date().getFullYear(),
   };
 }
@@ -207,7 +205,6 @@ function workDraft(b: HouseholdMember["work"]): ActivityDraft {
     lookup_label: refLabel(b.occupation_id),
     place_id: refId(b.place_id),
     place_label: refLabel(b.place_id),
-    nature_of_work: b.nature_of_work ?? "",
     as_of_year: b.as_of_year ?? new Date().getFullYear(),
   };
 }
@@ -295,7 +292,6 @@ function activityPayload(
   }
   return {
     occupation_id: a.lookup_id,
-    ...(trimmed(a.nature_of_work) ? { nature_of_work: trimmed(a.nature_of_work) } : {}),
     ...(place ? { place_id: place } : {}),
     as_of_year: year,
   };
@@ -639,18 +635,6 @@ function ActivityBlock({
                 <TextInput value={a.degree} onChange={(e) => set({ degree: e.target.value })} />
               </Field>
             </div>
-          )}
-
-          {which === "work" && (
-            <Field
-              label="வேலையின் தன்மை (Nature of work)"
-              hint="எ.கா. சொந்தத் தொழில், தினக்கூலி — anything that explains the work."
-            >
-              <TextInput
-                value={a.nature_of_work}
-                onChange={(e) => set({ nature_of_work: e.target.value })}
-              />
-            </Field>
           )}
 
           <Field

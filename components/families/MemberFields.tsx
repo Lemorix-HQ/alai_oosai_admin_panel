@@ -38,7 +38,6 @@ export interface ActivityValues {
   standard: string;
   course_year: string;
   degree: string;
-  nature_of_work: string;
 }
 
 export function emptyActivity(): ActivityValues {
@@ -52,7 +51,6 @@ export function emptyActivity(): ActivityValues {
     standard: "",
     course_year: "",
     degree: "",
-    nature_of_work: "",
   };
 }
 
@@ -107,7 +105,6 @@ function workToValues(b: Member["work"]): ActivityValues {
     lookup_label: refLabel(w.occupation_id),
     place_id: refId(w.place_id),
     place_label: refLabel(w.place_id),
-    nature_of_work: w.nature_of_work ?? "",
     as_of_year: String(w.as_of_year ?? new Date().getFullYear()),
   };
 }
@@ -200,7 +197,6 @@ export function valuesToPayload(v: MemberValues): MemberPayload & { status?: str
     work: v.work.on && v.work.lookup_id
       ? {
           occupation_id: v.work.lookup_id,
-          nature_of_work: t(v.work.nature_of_work),
           place_id: v.work.place_id ?? undefined,
           as_of_year: yearOf(v.work),
         }
@@ -459,15 +455,6 @@ export default function MemberFields({
                       />
                     </Field>
                   </>
-                )}
-
-                {k === "work" && (
-                  <Field label="Nature of work">
-                    <TextInput
-                      value={a.nature_of_work}
-                      onChange={(e) => set({ work: { ...a, nature_of_work: e.target.value } })}
-                    />
-                  </Field>
                 )}
 
                 <Field label={k === "work" ? "Place of working" : "Place"}>

@@ -111,7 +111,7 @@ export default function MergeFamilyPage({ params }: { params: Promise<{ id: stri
         </FormCard>
 
         <FormCard title="Merging into">
-          <Field label="Find the family" hint="Search by family code, phone or locality.">
+          <Field label="Find the family" hint="Search by family code or phone.">
             <TextInput
               value={search}
               placeholder="ASS-4"
@@ -167,7 +167,6 @@ export default function MergeFamilyPage({ params }: { params: Promise<{ id: stri
                         {typeof f.head_member_id === "string" || !f.head_member_id
                           ? "No head recorded"
                           : f.head_member_id.name_ta || f.head_member_id.name}
-                        {f.locality ? ` · ${f.locality}` : ""}
                       </span>
                     </button>
                   </li>

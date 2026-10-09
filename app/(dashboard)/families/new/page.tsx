@@ -23,8 +23,6 @@ export default function NewFamilyPage() {
   const [v, setV] = useState({
     card_year: String(new Date().getFullYear()),
     primary_phone: "",
-    locality: "",
-    house_note: "",
     residence_status: "resident",
     notes: "",
     head_name: "",
@@ -47,8 +45,6 @@ export default function NewFamilyPage() {
       anbiyam_id: anbiyamId,
       card_year: v.card_year ? Number(v.card_year) : undefined,
       primary_phone: v.primary_phone.trim() || undefined,
-      locality: v.locality.trim() || undefined,
-      house_note: v.house_note.trim() || undefined,
       residence: { status: v.residence_status as "resident" },
       pastoral_flags: [...flags],
       notes: v.notes.trim() || undefined,
@@ -147,9 +143,6 @@ export default function NewFamilyPage() {
                 onChange={(e) => setV({ ...v, card_year: e.target.value })}
               />
             </Field>
-            <Field label="Locality" lang="tamil">
-              <TamilTextInput value={v.locality} onChange={(e) => setV({ ...v, locality: e.target.value })} />
-            </Field>
             <Field label="Residence">
               <Select
                 value={v.residence_status}
@@ -162,9 +155,6 @@ export default function NewFamilyPage() {
               </Select>
             </Field>
           </div>
-          <Field label="House note" lang="tamil" hint="How to find the house — a landmark, not an address.">
-            <TamilTextInput value={v.house_note} onChange={(e) => setV({ ...v, house_note: e.target.value })} />
-          </Field>
         </FormCard>
 
         <FormCard title="Pastoral notes">

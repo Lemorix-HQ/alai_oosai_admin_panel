@@ -27,7 +27,6 @@ import type { Member, VisitOutcome } from "@/src/types";
 export interface VisitTarget {
   _id: string;
   family_code: string;
-  locality?: string;
   primary_phone?: string;
 }
 
@@ -123,7 +122,7 @@ export default function RecordVisitPanel({
       open={Boolean(family)}
       title={family ? family.family_code : "Record visit"}
       description={
-        family ? [family.locality, family.primary_phone].filter(Boolean).join(" · ") : undefined
+        family ? family.primary_phone ?? undefined : undefined
       }
       onClose={onClose}
     >

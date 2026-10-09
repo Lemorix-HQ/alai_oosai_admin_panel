@@ -298,8 +298,6 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
                 ["Position in Anbiyam", String(family.serial_in_anbiyam)],
                 ["Card year", family.card_year ? String(family.card_year) : "—"],
                 ["Phone", family.primary_phone ?? "—"],
-                ["Locality", family.locality ?? "—"],
-                ["House note", family.house_note ?? "—"],
                 ["Record source", family.completeness?.source ?? "—"],
               ].map(([label, value]) => (
                 <div key={label}>
