@@ -71,7 +71,36 @@ Client components must call server actions from `src/actions/*.actions.ts`.
   `/login`, when `/auth/me` rejects the token — a Server Component cannot delete a
   cookie, and `/login` with a cookie still set bounces back to `/` and loops.
 - JWT payload shape: `{ sub, phone, role, name, parish_id?, iat, exp }`
-- Middleware at `src/middleware.ts` protects all dashboard routes
+- Edge auth lives in **`proxy.ts` at the repo root** — Next 16's rename of
+  `middleware`. There is no `src/middleware.ts`. It answers only "is there a cookie":
+  it does not decode the JWT, because the cookie carries a token rather than a
+  permission set and re-deriving one at the edge would put a second, drifting copy of
+  the rules in front of the real one.
+- **A new public page needs two entries, not one.** `PUBLIC_PATHS` in `proxy.ts` is
+  matched by **prefix**, so `/foo` also makes `/foo/anything` public — keep a public
+  flow on one route segment with its steps in client state. And `/api/transliterate`
+  is inside the proxy matcher and is *not* public, so Tamil typing on an
+  unauthenticated page redirects to `/login`. It has never bitten because the four
+  existing public pages (`/login`, `/forgot-password`, `/accept-invite`,
+  `/reset-password`) all use plain `<input>`. `/family-update` is the first page that
+  needed it, and both entries are now in the list.
+- **A public page that is also usable while signed in needs a THIRD entry.** `TOKEN_PATHS`
+  in `proxy.ts` exempts a path from the "signed in? go to the dashboard" redirect.
+  `/accept-invite` and `/reset-password` are there because a link token addresses an
+  account rather than whoever is signed in; `/family-update` is there because the
+  household's form belongs to whoever is sitting at the machine — typically an Anbiyam
+  head's own laptop, signed in as himself, handed to a family. Miss this and the page
+  serves 200 to curl and redirects to the dashboard in a real browser.
+- `src/services/api.ts` takes an `AuthMode` — `'session'` (default), `'sitting'` or
+  `'none'`. The sitting token is the public form's, kept in `SITTING_COOKIE` and scoped to
+  `/family-update`. Callers never pass a raw token: cookie handling stays in that one
+  file.
+- **A component that both staff and the public form use takes an `audience`, not a token.**
+  `LookupCombobox` is the one case: `audience="household"` sends it to
+  `/self-service/lookups/:kind` with the sitting token instead of `/schools` and friends,
+  which need `member.read`. The audience is part of the TanStack Query key — the two routes
+  answer with different page sizes and the public one is active-only, so one cache entry
+  must not serve both.
 
 ---
 
@@ -151,3 +180,40 @@ src/
 4. **`useReport(id)` hook** — does not exist (no `GET /reports/:id`). Filter from `useAdminReports()` list.
 5. **`useAnnouncement`, `useUpdateAnnouncement`, `useDeleteAnnouncement`** — do not exist. Do not recreate.
 6. **ProfileForm** — must use `updateUserNameAction` from `src/actions/users.actions.ts`, NOT import `patchRequest` directly.
+7. **`requests/new` builds a payload `apply()` cannot read.** `app/(dashboard)/requests/new/page.tsx`
+   collapses every change-request type except `add_member` into `payload = { details: "..." }`,
+   but the backend's `apply()` reads `family`, `member_id` and `to_anbiyam_id`. An
+   `update_details`, `transfer_family` or `mark_deceased` raised from the panel can be
+   verified and approved and then fails at the last step. Known issue #7 in
+   `docs/planning/PROJECT_TRACKER.md`.
+
+---
+
+## The public family-update form
+
+Moved out of the root `CLAUDE.md` on 6 October 2026 — panel-only, so it belongs
+here. The feature as a whole is `docs/architecture/SELF_SERVICE.md`; what each
+person sees is `docs/domain/self_service_flow.md`.
+
+**It is a phone page.** Almost every parishioner reaching it is on one, so the
+form carries a `.touch-form` scope (`app/globals.css`): **16px inputs**, because
+below that iOS Safari zooms the whole page the moment a field is focused and the
+reader has to pan back to find the label; 48px field heights and 44px buttons for
+thumbs; and labels in sentence case at 13px, because the shared 12px uppercase
+`tracking-wider` label pulls Tamil glyphs apart at the joins that carry their
+meaning. Verified with nothing overflowing at 360px **or 320px**.
+
+**Do not reuse `components/families/MemberFields.tsx`.** It renders the schooling,
+college and work blocks in both of its modes by design, and each is a
+`LookupCombobox` hitting a route that needs `member.read` — three 403s on a public
+page. `components/self-service/HouseholdMemberFields.tsx` is the narrower set a
+household can answer about itself.
+
+**Its Tamil has not been read by a Tamil speaker.** The kinship terms come from
+`domain-labels.ts`; the rest — including the fourteen industry names in
+`INDUSTRY_TA` — should be checked before this is put in front of a parish.
+
+**A block switched off must send an explicit `null`.** That is the removal, and
+`JSON.stringify` drops `undefined`. "Switched on with nothing picked" would
+otherwise send the same thing and erase what is on the record, so
+`draftActivityError` refuses that submit.
