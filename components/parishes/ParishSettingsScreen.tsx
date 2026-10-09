@@ -27,6 +27,7 @@ function SettingsForm({ parish }: { parish: Parish }) {
   const [values, setValues] = useState({
     min_age_for_head: String(settings?.min_age_for_head ?? 25),
     allow_head_change_to_son: String(settings?.allow_head_change_to_son ?? true),
+    min_age_for_app_login: String(settings?.min_age_for_app_login ?? 18),
     currency: settings?.currency ?? "INR",
     default_offering_minimum: toRupees(settings?.default_offering_minimum),
   });
@@ -44,9 +45,16 @@ function SettingsForm({ parish }: { parish: Parish }) {
       return;
     }
 
+    const loginAge = Number(values.min_age_for_app_login);
+    if (!Number.isInteger(loginAge) || loginAge < 1 || loginAge > 120) {
+      setError("Minimum age for app access must be a whole number between 1 and 120.");
+      return;
+    }
+
     const payload: Partial<ParishSettings> = {
       min_age_for_head: age,
       allow_head_change_to_son: values.allow_head_change_to_son === "true",
+      min_age_for_app_login: loginAge,
       currency: values.currency,
       ...(values.default_offering_minimum.trim()
         ? { default_offering_minimum: toPaise(values.default_offering_minimum) }
@@ -83,6 +91,29 @@ function SettingsForm({ parish }: { parish: Parish }) {
               <option value="true">Yes</option>
               <option value="false">No</option>
             </Select>
+          </Field>
+        </div>
+      </FormCard>
+
+      <FormCard
+        title="App access"
+        description="A member from this age is expected to carry their own phone number, because the phone is how a person signs in. It is also the age from which someone may claim their record in the app."
+      >
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field
+            label="Minimum age for app access"
+            required
+            hint="Members below this age are not asked for a phone number."
+          >
+            <TextInput
+              type="number"
+              min={1}
+              max={120}
+              value={values.min_age_for_app_login}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, min_age_for_app_login: e.target.value }))
+              }
+            />
           </Field>
         </div>
       </FormCard>

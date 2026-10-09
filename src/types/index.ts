@@ -105,6 +105,7 @@ export interface Address {
 export interface ParishSettings {
   min_age_for_head: number;
   allow_head_change_to_son: boolean;
+  min_age_for_app_login: number;
   currency: string;
   default_offering_minimum: number | null;
 }
