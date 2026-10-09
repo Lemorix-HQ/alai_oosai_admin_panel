@@ -2,7 +2,25 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { AUTH_COOKIE } from "@/src/session/cookie";
 
-const PUBLIC_PATHS = ["/login", "/forgot-password", "/accept-invite", "/reset-password"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/forgot-password",
+  "/accept-invite",
+  "/reset-password",
+  /**
+   * The household's own form. ONE segment, with every step held in client
+   * state, because this list is matched by PREFIX — "/family-update" would
+   * make "/family-update/anything" public too.
+   */
+  "/family-update",
+  /**
+   * Tamil transliteration, which the form above needs and which sits inside
+   * this proxy's matcher. Without it a parishioner typing their own name is
+   * redirected to /login mid-word. It has never bitten before because the
+   * other public pages all use a plain <input>.
+   */
+  "/api/transliterate",
+];
 
 /**
  * Public paths that must render even when the browser already holds a session.
@@ -10,8 +28,16 @@ const PUBLIC_PATHS = ["/login", "/forgot-password", "/accept-invite", "/reset-pa
  * A link token addresses a specific ACCOUNT, not whoever is signed in on this
  * machine. Bouncing the holder to the dashboard — as somebody else, on a shared
  * parish computer — is how an invitation silently never gets accepted.
+ *
+ * `/family-update` is here for a stronger version of the same reason. It
+ * carries its own credential — the household's access code, and then a sitting
+ * cookie — and it belongs to whoever is sitting in front of the machine, not to
+ * whoever last signed in on it. The expected setting is an Anbiyam head's own
+ * laptop, signed in as himself, handed across to a family: without this they
+ * are bounced to his dashboard and the form is unusable exactly where it is
+ * meant to be used.
  */
-const TOKEN_PATHS = ["/accept-invite", "/reset-password"];
+const TOKEN_PATHS = ["/accept-invite", "/reset-password", "/family-update"];
 
 /**
  * Edge-level authentication. Next 16 calls this `proxy`; it is the former

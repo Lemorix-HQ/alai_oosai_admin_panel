@@ -188,3 +188,66 @@ body {
     transition: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   The household's own form, on a telephone.
+
+   Almost every parishioner reaching /family-update is on a phone, often an
+   older one, often in Tamil. Scoped to `.touch-form` rather than changed
+   globally, because the rest of the panel is a desktop tool for staff and this
+   is the one surface a member of the public ever sees.
+   --------------------------------------------------------------------------- */
+.touch-form input,
+.touch-form select,
+.touch-form textarea {
+  /* 16px exactly. Below this, iOS Safari zooms the whole page in the moment a
+     field is focused, and the reader then has to pan back to read the label of
+     the thing they are typing into. On a form the length of a household it is
+     the difference between usable and not. */
+  font-size: 16px;
+  /* Thumbs, not mouse pointers. 44px is the smallest target Apple's own
+     guidance calls reliable, and this clears it. */
+  min-height: 48px;
+}
+
+.touch-form textarea {
+  min-height: 84px;
+}
+
+/* The shared label is 12px, uppercase, letter-spaced — fine for an English
+   field name on a desktop table, poor for Tamil, whose glyphs carry their
+   meaning in joins that tracking pulls apart. */
+.touch-form label {
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Hints carry the Tamil explanation of why a field is being asked for, so they
+   are read rather than skimmed. */
+.touch-form .text-xs {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* Anything the thumb has to hit. */
+.touch-form button {
+  min-height: 44px;
+}
+
+/* …except the two glyphs that switch a search box between Tamil and English.
+   They sit absolutely positioned INSIDE a 48px field, so a 44px minimum makes
+   them fill it edge to edge and the pair stops reading as a toggle. */
+.touch-form .search-lang button {
+  min-height: 0;
+}
+
+/* The calendar button on a date field, for that same reason — it too sits
+   inside the box. 36px rather than the 28px it uses on the desktop panel:
+   short of the 44px guidance, but a thumb-sized square in a 48px field leaves
+   nothing of the field, and the eight digits beside it can always be typed. */
+.touch-form .date-field button {
+  min-height: 0;
+  height: 2.25rem;
+  width: 2.25rem;
+}
