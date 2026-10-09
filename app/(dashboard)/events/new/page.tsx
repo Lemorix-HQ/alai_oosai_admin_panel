@@ -8,6 +8,8 @@ import { createEventAction } from "@/src/actions/events.actions";
 import TamilInput from "@/components/ui/TamilInput";
 import TamilTextarea from "@/components/ui/TamilTextarea";
 import LanguageToggle from "@/components/ui/LanguageToggle";
+import { LangBadge } from "@/components/ui/Field";
+import DateInput from "@/components/ui/DateInput";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -120,7 +122,7 @@ export default function NewEventPage() {
             <div>
               <label className="block text-sm font-bold mb-1.5" style={{ color: "#2c3338" }} htmlFor="title">
                 Event Title <span style={{ color: "#a83836" }}>*</span>
-              </label>
+              {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
               <TamilInput
                 tamilMode={tamilMode}
                 className="w-full rounded-lg px-4 py-3 transition-all outline-none border"
@@ -149,20 +151,16 @@ export default function NewEventPage() {
                   Date <span style={{ color: "#a83836" }}>*</span>
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#abb3b9" }}>
-                    calendar_today
-                  </span>
-                  <input
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border outline-none transition-all"
+                  <DateInput
+                    className="w-full px-4 py-3 rounded-lg border outline-none transition-all"
                     style={{
                       borderColor: fieldError("date") ? "#a83836" : "#abb3b9",
                       backgroundColor: "#f7f9fc",
                     }}
                     id="date"
                     name="date"
-                    type="date"
                     value={formik.values.date}
-                    onChange={formik.handleChange}
+                    onValueChange={(iso) => formik.setFieldValue("date", iso)}
                     onBlur={formik.handleBlur}
                   />
                 </div>
@@ -203,7 +201,7 @@ export default function NewEventPage() {
               <div>
                 <label className="block text-sm font-bold mb-1.5" style={{ color: "#2c3338" }} htmlFor="place">
                   Location / Place <span style={{ color: "#a83836" }}>*</span>
-                </label>
+                {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#abb3b9" }}>
                     location_on
@@ -231,7 +229,7 @@ export default function NewEventPage() {
               <div>
                 <label className="block text-sm font-bold mb-1.5" style={{ color: "#2c3338" }} htmlFor="conductorName">
                   Conductor Name <span style={{ color: "#a83836" }}>*</span>
-                </label>
+                {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#abb3b9" }}>
                     person_pin_circle
@@ -287,7 +285,7 @@ export default function NewEventPage() {
               <div>
                 <label className="block text-sm font-bold mb-1.5" style={{ color: "#2c3338" }} htmlFor="ctaText">
                   CTA Text
-                </label>
+                {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                 <TamilInput
                   tamilMode={tamilMode}
                   className="w-full rounded-lg px-4 py-3 outline-none border transition-all"
@@ -306,7 +304,7 @@ export default function NewEventPage() {
             <div>
               <label className="block text-sm font-bold mb-1.5" style={{ color: "#2c3338" }} htmlFor="tags">
                 Tags
-              </label>
+              {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#abb3b9" }}>
                   sell
@@ -329,7 +327,7 @@ export default function NewEventPage() {
             <div>
               <label className="block text-sm font-bold mb-1.5" style={{ color: "#2c3338" }} htmlFor="description">
                 Description <span style={{ color: "#a83836" }}>*</span>
-              </label>
+              {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
               <TamilTextarea
                 tamilMode={tamilMode}
                 className="w-full rounded-lg px-4 py-3 border outline-none transition-all"

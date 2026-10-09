@@ -15,6 +15,7 @@ import { useSession } from "@/src/session/SessionProvider";
 import { useCreateStaff, useRoles, useStaff } from "@/hooks/useAccess";
 import { useParishes } from "@/hooks/useParishes";
 import type { ParishWithCounts, Role, RoleAssignment, StaffUser } from "@/src/types";
+import { userStatusTone } from "@/src/lib/domain-labels";
 
 function activeRoles(assignments: RoleAssignment[] = []) {
   const names = assignments
@@ -91,7 +92,7 @@ function NewStaffForm({ onDone }: { onDone: () => void }) {
         </span>
       </div>
       <LanguageToggle tamilMode={tamilMode} onToggle={() => setTamilMode(!tamilMode)} />
-      <Field label="Name" required>
+      <Field label="Name" required lang={tamilMode ? "tamil" : "english"}>
         <TamilTextInput
           tamilMode={tamilMode}
           value={v.name}
@@ -153,7 +154,28 @@ function StaffList() {
   const parishName = new Map(parishes.map((p) => [p._id, p.name]));
 
   const columns: Column<StaffUser>[] = [
-    { key: "name", header: "Name", render: (u) => u.name },
+    {
+      key: "name",
+      header: "Name",
+      // Your own account is in this list, and you are allowed to see it — but
+      // not to change it, and the page you land on has no controls. Saying so
+      // on the row is cheaper than letting someone click through and wonder
+      // where the buttons went.
+      render: (u) =>
+        u._id === user?.id ? (
+          <span className="inline-flex items-center gap-1.5">
+            {u.name}
+            <span
+              className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+              style={{ backgroundColor: "#f0fdfc", color: "#0D5C63" }}
+            >
+              You
+            </span>
+          </span>
+        ) : (
+          u.name
+        ),
+    },
     { key: "phone", header: "Phone", render: (u) => u.phone ?? "—" },
     // Only a super admin sees more than one parish here, so for anybody else
     // the column would repeat their own parish on every row.
@@ -168,6 +190,14 @@ function StaffList() {
         ] as Column<StaffUser>[])
       : []),
     { key: "roles", header: "Roles", render: (u) => activeRoles(u.assignments) },
+    {
+      key: "created_by_name",
+      header: "Added by",
+      secondary: true,
+      // Read out of the audit trail rather than off the account, so it is blank
+      // for anyone seeded or created before the panel existed.
+      render: (u) => u.created_by_name ?? "—",
+    },
     {
       key: "scope",
       header: "Scope",
@@ -192,7 +222,7 @@ function StaffList() {
       render: (u) => (
         <StatusPill
           label={u.status.replace("_", " ")}
-          tone={u.status === "active" ? "success" : u.status === "not_registered" ? "warning" : "neutral"}
+          tone={userStatusTone(u.status)}
         />
       ),
     },

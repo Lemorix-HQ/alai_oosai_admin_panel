@@ -6,7 +6,10 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { Field, FormActions, FormCard, Select, TamilTextInput, TextInput } from "@/components/ui/Field";
 import { useAssignRole, useRevokeAssignment, useRoles, useSendStaffInvite, useStaffMember } from "@/hooks/useAccess";
 import { useAnbiyams, useMandalams } from "@/hooks/useStructure";
+import { useSession } from "@/src/session/SessionProvider";
 import type { Anbiyam, Mandalam, Role, RoleAssignment } from "@/src/types";
+import { userStatusTone } from "@/src/lib/domain-labels";
+import { formatDate } from "@/lib/utils";
 
 const roleOf = (a: RoleAssignment) =>
   typeof a.role_id === "string" ? { _id: a.role_id, name: a.role_id, key: "" } : a.role_id;
@@ -82,7 +85,7 @@ function AccountStatus({
       ? {
           label: "Invited",
           tone: "#92400e",
-          note: `Invitation sent ${new Date(staff.invited_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}. It expires seven days after that.`,
+          note: `Invitation sent ${formatDate(staff.invited_at)}. It expires seven days after that.`,
         }
       : { label: "Never invited", tone: "#991b1b", note: "They cannot sign in until an invitation is sent." };
 
@@ -126,6 +129,12 @@ function AccountStatus({
 }
 
 export default function StaffDetailView({ userId }: { userId: string }) {
+  const { user: signedIn } = useSession();
+  // Your own page. You may read it — knowing what you hold is not a privilege —
+  // but every control that would change it is gone, because the server now
+  // refuses a grant or a revoke whose subject is the caller. Leaving the
+  // buttons would just produce a refusal on click.
+  const isSelf = signedIn?.id === userId;
   const { data, isLoading } = useStaffMember(userId);
   const { data: rolesRes } = useRoles();
   const { data: mandalamRes } = useMandalams();
@@ -187,6 +196,14 @@ export default function StaffDetailView({ userId }: { userId: string }) {
               <dd>{user.phone ?? "—"}</dd>
             </div>
             <div>
+              {/* The address they sign in with. It was in this payload all
+                  along — AccountStatus below reads it to decide whether to ask
+                  for one — but nothing ever put it on the screen, so the page
+                  could not answer "which address does this person use". */}
+              <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Email</dt>
+              <dd className="break-all">{user.email ?? "—"}</dd>
+            </div>
+            <div>
               <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Account type</dt>
               <dd>{user.account_type.replace("_", " ")}</dd>
             </div>
@@ -195,7 +212,7 @@ export default function StaffDetailView({ userId }: { userId: string }) {
               <dd>
                 <StatusPill
                   label={user.status.replace("_", " ")}
-                  tone={user.status === "active" ? "success" : user.status === "not_registered" ? "warning" : "neutral"}
+                  tone={userStatusTone(user.status)}
                 />
               </dd>
             </div>
@@ -226,20 +243,22 @@ export default function StaffDetailView({ userId }: { userId: string }) {
                     <ScopeSummary a={a} mandalams={mandalams} anbiyams={anbiyams} />
                     {a.note && <p className="text-xs text-slate-500 mt-0.5">{a.note}</p>}
                   </div>
-                  <ConfirmDialog
-                    trigger={
-                      <button className="text-xs font-bold shrink-0" style={{ color: "#dc2626" }}>
-                        Revoke
-                      </button>
-                    }
-                    title={`Revoke ${roleOf(a).name}?`}
-                    message="The assignment is marked revoked rather than deleted, so the trail of who held what and when survives."
-                    confirmLabel="Revoke"
-                    onConfirm={async () => {
-                      const res = await revoke.mutateAsync(a._id);
-                      if (!res.success) setError(res.message);
-                    }}
-                  />
+                  {!isSelf && (
+                    <ConfirmDialog
+                      trigger={
+                        <button className="text-xs font-bold shrink-0" style={{ color: "#dc2626" }}>
+                          Revoke
+                        </button>
+                      }
+                      title={`Revoke ${roleOf(a).name}?`}
+                      message="The assignment is marked revoked rather than deleted, so the trail of who held what and when survives."
+                      confirmLabel="Revoke"
+                      onConfirm={async () => {
+                        const res = await revoke.mutateAsync(a._id);
+                        if (!res.success) setError(res.message);
+                      }}
+                    />
+                  )}
                 </li>
               ))}
             </ul>
@@ -254,7 +273,7 @@ export default function StaffDetailView({ userId }: { userId: string }) {
                   <span className="text-slate-600">{roleOf(a).name}</span>
                   <span className="text-xs text-slate-400">
                     {a.status}
-                    {a.revoked_on ? ` · ${new Date(a.revoked_on).toLocaleDateString()}` : ""}
+                    {a.revoked_on ? ` · ${formatDate(a.revoked_on)}` : ""}
                   </span>
                 </li>
               ))}
@@ -285,6 +304,18 @@ export default function StaffDetailView({ userId }: { userId: string }) {
       </div>
 
       <div className="lg:col-span-1">
+        {isSelf ? (
+          <FormCard title="Your own access">
+            <p className="text-sm text-slate-600">
+              This is your account, so the roles above are shown for reference only.
+            </p>
+            <p className="text-sm text-slate-600">
+              Nobody changes their own access, however senior they are — granting
+              yourself a role would leave no one but you in the trail. Ask a super
+              admin to add or remove one.
+            </p>
+          </FormCard>
+        ) : (
         <form onSubmit={submit}>
           <FormCard
             title="Grant a role"
@@ -356,7 +387,7 @@ export default function StaffDetailView({ userId }: { userId: string }) {
               </Field>
             )}
 
-            <Field label="Note">
+            <Field label="Note" lang="tamil">
               <TamilTextInput
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -367,6 +398,7 @@ export default function StaffDetailView({ userId }: { userId: string }) {
             <FormActions submitting={assign.isPending} submitLabel="Grant role" error={error} />
           </FormCard>
         </form>
+        )}
       </div>
     </div>
   );

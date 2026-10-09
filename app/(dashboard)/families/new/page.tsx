@@ -120,16 +120,16 @@ export default function NewFamilyPage() {
           description="Optional. Creating them here saves opening the card again straight away; everyone else is added from the family card."
         >
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Head of family — name">
+            <Field label="Head of family — name" lang="english">
               <TextInput value={v.head_name} onChange={(e) => setV({ ...v, head_name: e.target.value })} />
             </Field>
-            <Field label="Head — name in Tamil">
+            <Field label="Head — name in Tamil" lang="tamil">
               <TamilTextInput value={v.head_name_ta} onChange={(e) => setV({ ...v, head_name_ta: e.target.value })} />
             </Field>
-            <Field label="Spouse — name">
+            <Field label="Spouse — name" lang="english">
               <TextInput value={v.spouse_name} onChange={(e) => setV({ ...v, spouse_name: e.target.value })} />
             </Field>
-            <Field label="Spouse — name in Tamil">
+            <Field label="Spouse — name in Tamil" lang="tamil">
               <TamilTextInput value={v.spouse_name_ta} onChange={(e) => setV({ ...v, spouse_name_ta: e.target.value })} />
             </Field>
           </div>
@@ -147,7 +147,7 @@ export default function NewFamilyPage() {
                 onChange={(e) => setV({ ...v, card_year: e.target.value })}
               />
             </Field>
-            <Field label="Locality">
+            <Field label="Locality" lang="tamil">
               <TamilTextInput value={v.locality} onChange={(e) => setV({ ...v, locality: e.target.value })} />
             </Field>
             <Field label="Residence">
@@ -162,7 +162,7 @@ export default function NewFamilyPage() {
               </Select>
             </Field>
           </div>
-          <Field label="House note" hint="How to find the house — a landmark, not an address.">
+          <Field label="House note" lang="tamil" hint="How to find the house — a landmark, not an address.">
             <TamilTextInput value={v.house_note} onChange={(e) => setV({ ...v, house_note: e.target.value })} />
           </Field>
         </FormCard>
@@ -194,7 +194,7 @@ export default function NewFamilyPage() {
               </label>
             ))}
           </div>
-          <Field label="Notes">
+          <Field label="Notes" lang="tamil">
             <TamilTextArea rows={3} value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
           </Field>
         </FormCard>

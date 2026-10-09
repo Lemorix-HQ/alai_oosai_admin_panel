@@ -12,3 +12,16 @@
  * image runs as both stacks.
  */
 export const AUTH_COOKIE = process.env.AUTH_COOKIE_NAME || 'admin_token';
+
+/**
+ * The sitting cookie for the public self-service form.
+ *
+ * A **different** cookie from the one above, and deliberately so. It holds a
+ * token signed with the API's `SELF_SERVICE_JWT_SECRET`, which no guarded route
+ * accepts, and it must not be mistaken for a session: `proxy.ts` decides
+ * whether a browser is signed in by the presence of AUTH_COOKIE alone, so a
+ * household holding one of these is correctly still "not signed in".
+ *
+ * Suffixed the same way, so the dev and test panels do not share it either.
+ */
+export const SITTING_COOKIE = `self_service_${AUTH_COOKIE}`;

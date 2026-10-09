@@ -3,7 +3,7 @@
 import { useState } from "react";
 import SearchInput from "@/components/ui/SearchInput";
 import { useCreateLookup, useLookup } from "@/hooks/useLookups";
-import type { LookupKind, LookupRow } from "@/actions/lookups.actions";
+import type { LookupAudience, LookupKind, LookupRow } from "@/actions/lookups.actions";
 
 /**
  * Pick from a parish list, or add to it without leaving the form.
@@ -12,6 +12,12 @@ import type { LookupKind, LookupRow } from "@/actions/lookups.actions";
  * front door cannot go and curate a list first, and the school they are told
  * about will not be on it. Creation is idempotent on the server, so two
  * people adding the same school on the same evening converge on one row.
+ *
+ * `audience: "household"` points the same component at the public form's own
+ * routes and lets the caller supply Tamil labels. Everything that is awkward
+ * here — the delayed blur so a tap lands before the list unmounts, the
+ * "+ Add" row, keeping a picked label visible when the search no longer
+ * matches it — is awkward on a phone too, and was not worth writing twice.
  */
 export default function LookupCombobox({
   kind,
@@ -21,6 +27,10 @@ export default function LookupCombobox({
   placeholder = "Search…",
   createDefaults = {},
   createChoice,
+  audience = "staff",
+  addLabel,
+  emptyText,
+  clearLabel,
 }: {
   kind: LookupKind;
   value: string | null;
@@ -46,6 +56,14 @@ export default function LookupCombobox({
     label: string;
     options: Array<{ value: string; label: string }>;
   };
+  /** Which routes to use. `household` carries the public form's sitting token. */
+  audience?: LookupAudience;
+  /** Overrides the "+ Add" wording, for the Tamil-first public form. */
+  addLabel?: (typed: string) => string;
+  /** Overrides the empty-list line, same reason. */
+  emptyText?: string;
+  /** Overrides the "Clear" link, same reason. */
+  clearLabel?: string;
 }) {
   const [term, setTerm] = useState("");
   const [open, setOpen] = useState(false);
@@ -54,8 +72,8 @@ export default function LookupCombobox({
   // Trimmed for the same reason the filter bar trims: `name_ta` is matched on
   // an unanchored regex, and committing a transliterated word leaves a
   // trailing space that then matches nothing.
-  const { data } = useLookup(kind, term.trim() || undefined);
-  const create = useCreateLookup(kind);
+  const { data } = useLookup(kind, term.trim() || undefined, undefined, audience);
+  const create = useCreateLookup(kind, audience);
   const [error, setError] = useState<string | null>(null);
 
   const rows = (data?.data ?? []) as LookupRow[];
@@ -154,7 +172,7 @@ export default function LookupCombobox({
                 className="w-full text-left px-3 py-2 text-sm font-bold"
                 style={{ color: "#0D5C63" }}
               >
-                + Add &ldquo;{typed}&rdquo;
+                {addLabel ? addLabel(typed) : `+ Add “${typed}”`}
               </button>
             </li>
           )}
@@ -163,7 +181,7 @@ export default function LookupCombobox({
 
           {rows.length === 0 && !typed && (
             <li className="px-3 py-2 text-sm text-slate-400">
-              Nothing on the list yet — type a name to add the first.
+              {emptyText ?? "Nothing on the list yet — type a name to add the first."}
             </li>
           )}
         </ul>
@@ -179,7 +197,7 @@ export default function LookupCombobox({
           }}
           className="mt-1 text-[11px] font-bold text-slate-500"
         >
-          Clear
+          {clearLabel ?? "Clear"}
         </button>
       )}
     </div>

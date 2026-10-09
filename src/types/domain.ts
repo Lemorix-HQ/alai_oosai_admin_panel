@@ -317,6 +317,9 @@ export interface Role {
   status: 'active' | 'inactive';
   /** Attached by the list endpoint. */
   assigned_count?: number;
+  /** Also attached by the list endpoint. Null for the seeded roles, which
+   *  nobody created in the panel. */
+  created_by_name?: string | null;
 }
 
 export interface PermissionCatalogue {
@@ -341,13 +344,21 @@ export interface RoleAssignment {
   revoked_on?: string | null;
 }
 
+/** BaseUser.status, as the schema enumerates it. */
+export type UserStatus =
+  | 'active'
+  | 'inactive'
+  | 'banned'
+  | 'verification_pending'
+  | 'not_registered';
+
 export interface StaffUser {
   _id: string;
   name: string;
   phone?: string | null;
   email?: string | null;
   account_type: 'super_admin' | 'parish_staff' | 'parishioner';
-  status: 'active' | 'inactive' | 'banned' | 'verification_pending' | 'not_registered';
+  status: UserStatus;
   parish_id?: string | null;
   member_id?: string | null;
   last_login_at?: string | null;
@@ -357,6 +368,9 @@ export interface StaffUser {
   password_set_at?: string | null;
   createdAt?: string;
   assignments: RoleAssignment[];
+  /** Attached by the list endpoint, read out of the audit trail — BaseUser
+   *  itself records no creator. Null for an account created outside the panel. */
+  created_by_name?: string | null;
 }
 
 export interface StaffDetail extends StaffUser {
@@ -473,10 +487,19 @@ export interface FamilyVisit {
 
 /** GET /visit-rounds/:id — the round, what was done, and what is left. */
 export interface VisitRoundDetail extends VisitRound {
-  visits: FamilyVisit[];
+  /**
+   * `pending_submissions` is on both lists: how many sittings at the public
+   * form this household has waiting. The whole point of the self-service work
+   * is that a faculty member knows before knocking.
+   */
+  visits: Array<FamilyVisit & { pending_submissions?: number }>;
   outstanding: Array<
-    Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone' | 'verification_status'>
+    Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone' | 'verification_status'> & {
+      pending_submissions?: number;
+    }
   >;
+  /** How many households in this round have sent something in. */
+  pending_submission_families?: number;
 }
 
 // ----------------------------------------------------------- change requests
@@ -521,4 +544,256 @@ export interface ChangeRequest {
   resulting_family_id?: string | null;
   resulting_member_id?: string | null;
   createdAt?: string;
+}
+
+// ------------------------------------------- self-service family access codes
+
+/**
+ * `never` also covers a code whose row the TTL index has already swept, so
+ * `expired` is only visible in the minute or so before Mongo removes it.
+ */
+export type AccessCodeState = 'never' | 'active' | 'expired' | 'revoked';
+
+export interface AccessCodeStatus {
+  state: AccessCodeState;
+  issued_at: string | null;
+  issued_by: string | null;
+  expires_at: string | null;
+  /** Set only while a lockout is still running. */
+  locked_until: string | null;
+}
+
+/**
+ * The response to issuing, and the only place the plaintext code appears.
+ * Nothing stores it and no other endpoint returns it — a lost code is replaced,
+ * not looked up.
+ */
+export interface IssuedAccessCode {
+  family_code: string;
+  code: string;
+  expires_at: string;
+  replaced_a_live_code: boolean;
+}
+
+export interface RevokedAccessCode {
+  revoked: boolean;
+}
+
+// ----------------------------------------- the household's self-service form
+
+/** The public parish picker: id and name only, before anyone has a session. */
+export interface SelfServiceParish {
+  id: string;
+  name: string;
+  name_ta: string | null;
+}
+
+/**
+ * A person as the household sees them.
+ *
+ * Flatter than `Member` on purpose: this comes from `/self-service/*`, which
+ * returns only what the form renders, with ids as strings and no populated
+ * references.
+ */
+export interface HouseholdMember {
+  id: string;
+  name: string;
+  name_ta: string | null;
+  baptismal_name: string | null;
+  initial: string | null;
+  gender: string;
+  date_of_birth: string | null;
+  dob_is_estimated: boolean;
+  relationship_to_head: string;
+  marital_status: string;
+  phone: string | null;
+  email: string | null;
+  blood_group: string | null;
+  /**
+   * Populated, unlike everything else on this type.
+   *
+   * The form has to print the school a child is already at, and a bare
+   * ObjectId would make a block that exists look empty — which invites the
+   * household to add a second row for the same school.
+   */
+  schooling: MemberSchooling | null;
+  college: MemberCollege | null;
+  work: MemberWork | null;
+}
+
+export interface HouseholdSnapshot {
+  family: {
+    id: string;
+    family_code: string;
+    card_year: number | null;
+    primary_phone: string | null;
+    locality: string | null;
+    house_note: string | null;
+    address?: Address | null;
+    residence?: Residence | null;
+  };
+  members: HouseholdMember[];
+  /** From what age the parish asks for a phone number. */
+  rules: { min_age_for_phone: number };
+  /** What the household was shown, for whoever verifies at the door. */
+  based_on: {
+    family_updated_at: string | null;
+    members_updated_at: string | null;
+  };
+}
+
+/**
+ * What opening a sitting returns to the PAGE.
+ *
+ * The API also returns the sitting token; the action strips it and keeps it in
+ * an httpOnly cookie, so it never reaches client JavaScript.
+ */
+export type OpenedSitting = HouseholdSnapshot & { expires_in_minutes: number };
+
+export interface SubmittedSitting {
+  submission_id: string;
+  family_code: string;
+  change_count: number;
+  status: string;
+  what_happens_next: string;
+}
+
+/**
+ * An activity block as the household sends it: ids, not populated rows.
+ *
+ * `as_of_year` is required for the reason an age is never stored — "10th
+ * standard" without a year is wrong within twelve months and nothing
+ * downstream can tell it has gone stale. The public form does not ask for it;
+ * it sends the current year, because a household filling this in is describing
+ * now.
+ */
+export interface HouseholdSchoolingInput {
+  school_id: string;
+  standard?: string;
+  place_id?: string;
+  as_of_year: number;
+}
+export interface HouseholdCollegeInput {
+  college_id: string;
+  course_year?: number;
+  degree?: string;
+  place_id?: string;
+  as_of_year: number;
+}
+export interface HouseholdWorkInput {
+  occupation_id: string;
+  nature_of_work?: string;
+  place_id?: string;
+  as_of_year: number;
+}
+
+/** What the form sends back. Mirrors the backend's SubmitSittingDto. */
+export interface HouseholdMemberChanges {
+  name?: string;
+  name_ta?: string;
+  baptismal_name?: string;
+  initial?: string;
+  gender?: string;
+  date_of_birth?: string;
+  relationship_to_head?: string;
+  marital_status?: string;
+  phone?: string;
+  email?: string;
+  blood_group?: string;
+  /**
+   * An explicit `null` removes a block. `undefined` would be dropped by
+   * `JSON.stringify` and the old block would survive — the same rule
+   * `valuesToPayload` follows on the staff form.
+   */
+  schooling?: HouseholdSchoolingInput | null;
+  college?: HouseholdCollegeInput | null;
+  work?: HouseholdWorkInput | null;
+}
+
+export interface SubmitSittingPayload {
+  submitter_name: string;
+  submitter_phone?: string;
+  submitter_relationship?: string;
+  note?: string;
+  family?: {
+    primary_phone?: string;
+    locality?: string;
+    house_note?: string;
+  };
+  members?: {
+    member_id: string;
+    changes: HouseholdMemberChanges;
+    shares_household_phone?: boolean;
+  }[];
+  new_members?: (HouseholdMemberChanges & {
+    name: string;
+    gender: string;
+    relationship_to_head: string;
+    shares_household_phone?: boolean;
+  })[];
+  deceased?: { member_id: string; reason?: string }[];
+}
+
+// --------------------------------------- self-service submissions, for staff
+
+export type SubmissionStatus =
+  | 'pending'
+  | 'under_verification'
+  | 'approved'
+  | 'applied'
+  | 'partially_applied'
+  | 'rejected';
+
+/**
+ * One household's sitting at the public form, as the faculty see it.
+ *
+ * The row they open at a front door. Its individual changes are ordinary
+ * `ChangeRequest`s carrying this row's id in `submission_id`.
+ */
+export interface SelfServiceSubmission {
+  _id: string;
+  family_id?: Ref<Pick<Family, '_id' | 'family_code' | 'locality' | 'primary_phone'>> | null;
+  anbiyam_id?: Ref<Pick<Anbiyam, '_id' | 'code' | 'name' | 'name_ta'>> | null;
+  submitted_at: string;
+  submitter_name: string;
+  submitter_phone?: string | null;
+  submitter_relationship?: string | null;
+  note?: string | null;
+  /** Adults who said they use the household's number rather than their own. */
+  shares_household_phone: string[];
+  based_on_family_updated_at?: string | null;
+  based_on_members_updated_at?: string | null;
+  change_count: number;
+  status: SubmissionStatus;
+  decided_by?: string | null;
+  decided_on?: string | null;
+  createdAt?: string;
+}
+
+/** The submission with everything in it, for the decision screen. */
+export type SubmissionDetail = SelfServiceSubmission & {
+  requests: ChangeRequest[];
+  /**
+   * `{ id: name }` for the schools, colleges, occupations and places named
+   * inside the payloads.
+   *
+   * Beside the payload rather than in it: a payload is what `apply()` reads,
+   * and `populate()` cannot reach into a Mixed path, so the server does this
+   * join by hand for display only.
+   */
+  lookup_names?: Record<string, string>;
+};
+
+/** What one change's turn through a group decision produced. */
+export interface SubmissionOutcome {
+  id: string;
+  type: string;
+  ok: boolean;
+  reason?: string;
+}
+
+export interface SubmissionDecisionResult {
+  submission_id: string;
+  status: SubmissionStatus;
+  outcomes: SubmissionOutcome[];
 }

@@ -23,6 +23,7 @@ export const P = {
     update: 'family.update',
     transfer: 'family.transfer',
     close: 'family.close',
+    accessCodeManage: 'family.access_code.manage',
   },
   member: {
     read: 'member.read',

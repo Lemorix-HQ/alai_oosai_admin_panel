@@ -57,13 +57,18 @@ export default function ParishForm({
 
     if (!values.name.trim()) return setError("Parish name is required.");
     if (!values.code.trim()) return setError("Parish code is required.");
+    // The public family-update form lists parishes in Tamil, and a parish with
+    // no Tamil name shows up as an English row in the middle of that list.
+    // There is nothing the page can do about it at render time, so it is asked
+    // for here. The server requires it too (CreateParishDto).
+    if (!values.name_ta.trim()) return setError("Name in Tamil is required — the parish list on the public family form is in Tamil.");
 
     setBusy(true);
     try {
       const payload: ParishPayload = {
         name: values.name.trim(),
         code: values.code.trim().toUpperCase(),
-        name_ta: values.name_ta.trim() || undefined,
+        name_ta: values.name_ta.trim(),
         patron_saint: values.patron_saint.trim() || undefined,
         diocese: values.diocese.trim() || undefined,
         deanery: values.deanery.trim() || undefined,
@@ -98,7 +103,7 @@ export default function ParishForm({
     <form onSubmit={submit} className="space-y-4 max-w-3xl">
       <FormCard title="Identity">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Parish name" required>
+          <Field label="Parish name" lang="english" required>
             <TextInput value={values.name} onChange={set("name")} placeholder="Holy Lourdes Church" />
           </Field>
           <Field
@@ -114,10 +119,15 @@ export default function ParishForm({
               style={{ textTransform: "uppercase" }}
             />
           </Field>
-          <Field label="Name in Tamil">
+          <Field
+            label="Name in Tamil"
+            lang="tamil"
+            required
+            hint="Shown to households on the public family-update form, which is in Tamil."
+          >
             <TamilTextInput value={values.name_ta} onChange={set("name_ta")} placeholder="புனித லூர்து அன்னை ஆலயம்" />
           </Field>
-          <Field label="Patron saint">
+          <Field label="Patron saint" lang="tamil">
             <TamilTextInput value={values.patron_saint} onChange={set("patron_saint")} />
           </Field>
           <Field label="Diocese">
@@ -151,7 +161,7 @@ export default function ParishForm({
           <Field label="Street">
             <TextInput value={values.street} onChange={set("street")} />
           </Field>
-          <Field label="Town / village">
+          <Field label="Town / village" lang="tamil">
             <TamilTextInput value={values.town} onChange={set("town")} />
           </Field>
           <Field label="Taluk">

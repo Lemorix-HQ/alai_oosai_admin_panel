@@ -4,10 +4,26 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Field, FormActions, FormCard, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
 import RoleScopePicker, { resolveScope, scopeFromRole, type RoleScopeValue } from "@/components/access/RoleScopePicker";
+import PermissionRow from "@/components/access/PermissionRow";
 import { usePermissionCatalogue } from "@/hooks/useAccess";
 import { useAnbiyams } from "@/hooks/useStructure";
 import type { Anbiyam, ApiResponse, Role } from "@/src/types";
 import type { RolePayload } from "@/actions/access.actions";
+
+/**
+ * A role name turned into its key.
+ *
+ * Punctuation becomes an underscore rather than surviving: copying a template
+ * suggests "Faculty (copy)", and keeping the brackets produced the key
+ * `faculty_(copy)`. The key goes into code and logs, so it stays to letters,
+ * digits and underscores.
+ */
+function keyFromName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
 
 const AREA_LABEL: Record<string, string> = {
   parish: "Parish",
@@ -48,7 +64,10 @@ export default function RoleForm({
   const [busy, setBusy] = useState(false);
 
   const [values, setValues] = useState({
-    key: initial?.key ?? "",
+    // Derived here as well as in the Name field's onChange, because a copied
+    // template arrives with a name already in it and that handler never fires —
+    // which left Key, a required field, empty on every copy.
+    key: initial?.key ?? (initial?.name ? keyFromName(initial.name) : ""),
     name: initial?.name ?? "",
     name_ta: initial?.name_ta ?? "",
     description: initial?.description ?? "",
@@ -108,7 +127,7 @@ export default function RoleForm({
     setBusy(true);
     try {
       const res = await onSubmit({
-        key: values.key.trim().toLowerCase().replace(/\s+/g, "_"),
+        key: keyFromName(values.key),
         name: values.name.trim(),
         name_ta: values.name_ta.trim() || undefined,
         description: values.description.trim() || undefined,
@@ -130,7 +149,7 @@ export default function RoleForm({
     <form onSubmit={submit} className="space-y-4 max-w-4xl">
       <FormCard title="Role">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Name" required>
+          <Field label="Name" lang="english" required>
             <TextInput
               value={values.name}
               onChange={(e) => {
@@ -139,7 +158,7 @@ export default function RoleForm({
                   ...v,
                   name,
                   // Derive the key while creating; never rewrite an existing one.
-                  key: initial?.key ? v.key : name.toLowerCase().trim().replace(/\s+/g, "_"),
+                  key: initial?.key ? v.key : keyFromName(name),
                 }));
               }}
               placeholder="Anbiyam head — Mandalam 3"
@@ -152,7 +171,7 @@ export default function RoleForm({
               disabled={Boolean(initial?.key)}
             />
           </Field>
-          <Field label="Name in Tamil">
+          <Field label="Name in Tamil" lang="tamil">
             <TamilTextInput
               value={values.name_ta}
               onChange={(e) => setValues((v) => ({ ...v, name_ta: e.target.value }))}
@@ -177,7 +196,7 @@ export default function RoleForm({
 
       <FormCard
         title={`Permissions (${selected.size} selected)`}
-        description="Greyed rows are permissions you do not hold yourself, so you cannot grant them."
+        description="Hover or tap any permission to see what it does. Greyed rows are permissions you do not hold yourself, so you cannot grant them."
       >
         {isLoading ? (
           <p className="text-sm text-slate-500">Loading the permission catalogue…</p>
@@ -203,30 +222,16 @@ export default function RoleForm({
                       </button>
                     )}
                   </div>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
-                    {group.permissions.map((p) => {
-                      const allowed = grantable.has(p.key);
-                      return (
-                        <label
-                          key={p.key}
-                          className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-xs font-mono ${
-                            allowed ? "cursor-pointer" : "cursor-not-allowed opacity-50"
-                          }`}
-                          style={{
-                            borderColor: selected.has(p.key) ? "#0D5C63" : "#e2e8f0",
-                            backgroundColor: selected.has(p.key) ? "#f0fdfc" : "#ffffff",
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            disabled={!allowed}
-                            checked={selected.has(p.key)}
-                            onChange={() => toggle(p.key)}
-                          />
-                          {p.key}
-                        </label>
-                      );
-                    })}
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-1.5 gap-y-2">
+                    {group.permissions.map((p) => (
+                      <PermissionRow
+                        key={p.key}
+                        permissionKey={p.key}
+                        checked={selected.has(p.key)}
+                        disabled={!grantable.has(p.key)}
+                        onToggle={() => toggle(p.key)}
+                      />
+                    ))}
                   </div>
                 </div>
               );

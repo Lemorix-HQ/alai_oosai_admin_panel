@@ -9,6 +9,7 @@ import StatusPill from "@/components/ui/StatusPill";
 import { useStaff } from "@/hooks/useAccess";
 import { useParishes } from "@/hooks/useParishes";
 import type { ParishWithCounts, RoleAssignment, StaffUser } from "@/src/types";
+import { userStatusTone } from "@/src/lib/domain-labels";
 
 const ACCOUNT_TONE: Record<string, "info" | "warning" | "neutral"> = {
   super_admin: "warning",
@@ -60,7 +61,7 @@ function UsersTable() {
       render: (u) => (
         <StatusPill
           label={u.status.replace("_", " ")}
-          tone={u.status === "active" ? "success" : u.status === "not_registered" ? "warning" : "neutral"}
+          tone={userStatusTone(u.status)}
         />
       ),
     },

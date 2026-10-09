@@ -11,6 +11,7 @@ import LanguageToggle from "@/components/ui/LanguageToggle";
 import { useAssignParishAdmin, useParishStats, useRemoveParishAdmin } from "@/hooks/useParishes";
 import { useStaff } from "@/hooks/useAccess";
 import type { RoleAssignment, StaffUser } from "@/src/types";
+import { userStatusTone } from "@/src/lib/domain-labels";
 
 function roleNames(assignments: RoleAssignment[]) {
   const names = assignments
@@ -46,7 +47,7 @@ export default function ParishStaffPage({ params }: { params: Promise<{ id: stri
       render: (u) => (
         <StatusPill
           label={u.status.replace("_", " ")}
-          tone={u.status === "active" ? "success" : u.status === "not_registered" ? "warning" : "neutral"}
+          tone={userStatusTone(u.status)}
         />
       ),
     },
@@ -122,7 +123,7 @@ export default function ParishStaffPage({ params }: { params: Promise<{ id: stri
           <form onSubmit={submit}>
             <FormCard title={priest ? "Replace the priest" : "Assign a priest"}>
               <LanguageToggle tamilMode={tamilMode} onToggle={() => setTamilMode(!tamilMode)} />
-              <Field label="Name" required>
+              <Field label="Name" required lang={tamilMode ? "tamil" : "english"}>
                 <TamilTextInput
                   tamilMode={tamilMode}
                   value={form.name}

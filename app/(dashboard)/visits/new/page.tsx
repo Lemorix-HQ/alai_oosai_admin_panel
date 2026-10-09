@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PageShell from "@/components/ui/PageShell";
-import { Field, FormActions, FormCard, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
+import { DateInput, Field, FormActions, FormCard, Select, TamilTextArea, TamilTextInput } from "@/components/ui/Field";
 import { useCreateVisitRound } from "@/hooks/usePastoral";
 import { useAnbiyams } from "@/hooks/useStructure";
 import type { Anbiyam } from "@/src/types";
@@ -78,14 +78,14 @@ export default function NewVisitRoundPage() {
           )}
 
           <Field label="Date" required>
-            <TextInput type="date" value={roundDate} onChange={(e) => setRoundDate(e.target.value)} />
+            <DateInput value={roundDate} onValueChange={setRoundDate} />
           </Field>
 
-          <Field label="Label" hint="How the parish refers to this round, e.g. “2026 visit”.">
+          <Field label="Label" lang="tamil" hint="How the parish refers to this round, e.g. “2026 visit”.">
             <TamilTextInput value={label} onChange={(e) => setLabel(e.target.value)} />
           </Field>
 
-          <Field label="Notes">
+          <Field label="Notes" lang="tamil">
             <TamilTextArea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </Field>
         </FormCard>

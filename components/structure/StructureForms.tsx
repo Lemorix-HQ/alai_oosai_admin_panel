@@ -55,7 +55,7 @@ export function MandalamForm({
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Field label="Name" required>
+      <Field label="Name" lang="english" required>
         <TextInput value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} placeholder="Mandalam 3" />
       </Field>
       <Field label="Code" required>
@@ -66,10 +66,10 @@ export function MandalamForm({
           style={{ textTransform: "uppercase" }}
         />
       </Field>
-      <Field label="Name in Tamil">
+      <Field label="Name in Tamil" lang="tamil">
         <TamilTextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
       </Field>
-      <Field label="Patron saint">
+      <Field label="Patron saint" lang="tamil">
         <TamilTextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
       </Field>
       {substations.length > 0 && (
@@ -171,10 +171,10 @@ export function AnbiyamForm({
           style={{ textTransform: "uppercase" }}
         />
       </Field>
-      <Field label="Name">
+      <Field label="Name" lang="english">
         <TextInput value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} />
       </Field>
-      <Field label="Name in Tamil">
+      <Field label="Name in Tamil" lang="tamil">
         <TamilTextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
       </Field>
       <Field label="Mandalam" hint="Small parishes skip the zone level entirely.">
@@ -187,7 +187,7 @@ export function AnbiyamForm({
           ))}
         </Select>
       </Field>
-      <Field label="Patron saint">
+      <Field label="Patron saint" lang="tamil">
         <TamilTextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
@@ -203,7 +203,7 @@ export function AnbiyamForm({
           />
         </Field>
       </div>
-      <Field label="Meeting place">
+      <Field label="Meeting place" lang="tamil">
         <TamilTextInput value={v.meeting_place} onChange={(e) => setV({ ...v, meeting_place: e.target.value })} />
       </Field>
       <FormActions
@@ -247,7 +247,7 @@ export function SubstationForm({ initial, onDone }: { initial?: Substation; onDo
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Field label="Name" required>
+      <Field label="Name" lang="english" required>
         <TextInput value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} />
       </Field>
       <Field label="Code" required>
@@ -257,10 +257,10 @@ export function SubstationForm({ initial, onDone }: { initial?: Substation; onDo
           style={{ textTransform: "uppercase" }}
         />
       </Field>
-      <Field label="Name in Tamil">
+      <Field label="Name in Tamil" lang="tamil">
         <TamilTextInput value={v.name_ta} onChange={(e) => setV({ ...v, name_ta: e.target.value })} />
       </Field>
-      <Field label="Patron saint">
+      <Field label="Patron saint" lang="tamil">
         <TamilTextInput value={v.patron_saint} onChange={(e) => setV({ ...v, patron_saint: e.target.value })} />
       </Field>
       <FormActions

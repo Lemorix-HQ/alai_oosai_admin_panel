@@ -1,7 +1,41 @@
 "use client";
 
+import DateInputBase, { type DateInputProps } from "@/components/ui/DateInput";
 import TamilInputBase from "@/components/ui/TamilInput";
 import TamilTextareaBase from "@/components/ui/TamilTextarea";
+
+/**
+ * Which language a box expects, said on the label rather than left to be
+ * discovered by typing into it.
+ *
+ * Three cases needed it and only one of them was obvious. A pair of fields
+ * ("Name" beside "Name in Tamil") says so in the label text already. A single
+ * field driven by a LanguageToggle changes language under you, so the badge has
+ * to follow the toggle. The third was the real complaint: TamilTextInput
+ * defaults to tamilMode, so Locality, House note, Reason, Notes and a couple of
+ * dozen others transliterate to Tamil while their labels say nothing at all.
+ *
+ * Wording and order match LanguageToggle — "த Tamil", "A English" — so the badge
+ * and the switch that controls it read as the same thing.
+ */
+export type FieldLang = "tamil" | "english";
+
+const LANG_BADGE: Record<FieldLang, { text: string; bg: string; fg: string }> = {
+  tamil: { text: "த Tamil", bg: "#e6f4f1", fg: "#0D5C63" },
+  english: { text: "A English", bg: "#eef2f6", fg: "#475569" },
+};
+
+export function LangBadge({ lang }: { lang: FieldLang }) {
+  const b = LANG_BADGE[lang];
+  return (
+    <span
+      className="px-1.5 py-0.5 rounded text-[10px] font-bold normal-case tracking-normal"
+      style={{ backgroundColor: b.bg, color: b.fg }}
+    >
+      {b.text}
+    </span>
+  );
+}
 
 /** Shared form field chrome so every form looks and behaves the same. */
 export function Field({
@@ -9,19 +43,28 @@ export function Field({
   required,
   error,
   hint,
+  lang,
   children,
 }: {
   label: string;
   required?: boolean;
   error?: string | null;
   hint?: string;
+  /** Pass a fixed language, or `tamilMode ? "tamil" : "english"` to follow a toggle. */
+  lang?: FieldLang;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "#596065" }}>
-        {label}
-        {required && <span style={{ color: "#dc2626" }}> *</span>}
+      <label
+        className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+        style={{ color: "#596065" }}
+      >
+        <span>
+          {label}
+          {required && <span style={{ color: "#dc2626" }}> *</span>}
+        </span>
+        {lang && <LangBadge lang={lang} />}
       </label>
       {children}
       {hint && !error && <p className="text-xs text-slate-500">{hint}</p>}
@@ -39,6 +82,24 @@ const baseInput =
 
 export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${baseInput} ${props.className ?? ""}`} style={{ borderColor: "#dce3e9", ...(props.style ?? {}) }} />;
+}
+
+/**
+ * `TextInput`'s chrome around a dd/mm/yyyy date box. Replaces
+ * `<TextInput type="date" />`, which rendered in the browser's locale — see
+ * `components/ui/DateInput.tsx` for why that had to go.
+ *
+ * `value` and `onValueChange` both speak ISO `yyyy-mm-dd`; the dd/mm/yyyy is
+ * on screen only.
+ */
+export function DateInput({ className, style, ...props }: DateInputProps) {
+  return (
+    <DateInputBase
+      {...props}
+      className={`${baseInput} ${className ?? ""}`}
+      style={{ borderColor: "#dce3e9", ...(style ?? {}) }}
+    />
+  );
 }
 
 export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {

@@ -13,9 +13,7 @@ import { P } from "@/src/session/permissions";
 import { useCompleteVisitRound, useVisitRound } from "@/hooks/usePastoral";
 import { VISIT_OUTCOME_LABEL, roundProgress, visitOutcomeTone } from "@/src/lib/domain-labels";
 import type { FamilyVisit } from "@/src/types";
-
-const onDate = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+import { formatDateOr } from "@/lib/utils";
 
 const refId = (ref: unknown): string => {
   const doc = ref as { _id?: string };
@@ -25,6 +23,8 @@ const refId = (ref: unknown): string => {
 interface ChecklistRow {
   family: VisitTarget;
   visit: FamilyVisit | null;
+  /** Sittings at the public form this household has waiting. */
+  pending: number;
 }
 
 export default function VisitRoundPage({ params }: { params: Promise<{ id: string }> }) {
@@ -58,6 +58,7 @@ export default function VisitRoundPage({ params }: { params: Promise<{ id: strin
         primary_phone: f.primary_phone,
       },
       visit: null,
+      pending: f.pending_submissions ?? 0,
     }));
 
     const done: ChecklistRow[] = [...latest.entries()].map(([fid, v]) => {
@@ -70,6 +71,7 @@ export default function VisitRoundPage({ params }: { params: Promise<{ id: strin
           primary_phone: ref?.primary_phone,
         },
         visit: v,
+        pending: (v as { pending_submissions?: number }).pending_submissions ?? 0,
       };
     });
 
@@ -100,7 +102,7 @@ export default function VisitRoundPage({ params }: { params: Promise<{ id: strin
   return (
     <PageShell
       title={anbiyam}
-      subtitle={`${round.label ?? "Visit round"} · ${onDate(round.round_date)}`}
+      subtitle={`${round.label ?? "Visit round"} · ${formatDateOr(round.round_date)}`}
       breadcrumb={[{ href: "/visits", label: "Visits" }, { label: anbiyam }]}
       action={
         !closed ? (
@@ -157,7 +159,7 @@ export default function VisitRoundPage({ params }: { params: Promise<{ id: strin
         />
       ) : (
         <div className="rounded-xl border bg-white divide-y" style={{ borderColor: "#e2e8f0" }}>
-          {checklist.map(({ family, visit }) => (
+          {checklist.map(({ family, visit, pending }) => (
             <div
               key={family._id}
               className="flex flex-wrap items-center justify-between gap-2 p-4"
@@ -173,12 +175,23 @@ export default function VisitRoundPage({ params }: { params: Promise<{ id: strin
                 <p className="text-xs text-slate-500 truncate">
                   {family.locality || "—"}
                   {family.primary_phone ? ` · ${family.primary_phone}` : ""}
-                  {visit ? ` · ${onDate(visit.visit_date)}` : ""}
+                  {visit ? ` · ${formatDateOr(visit.visit_date)}` : ""}
                   {visit?.acknowledgement ? ` · ${visit.acknowledgement}` : ""}
                 </p>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
+                {pending > 0 && (
+                  <Link
+                    href={`/submissions?family_id=${family._id}`}
+                    className="text-xs font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap"
+                    style={{ backgroundColor: "#abeef6", color: "#0a5b62" }}
+                    title="This household filled its own details in before you arrived"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">drafts</span>
+                    {pending} sent in
+                  </Link>
+                )}
                 {visit ? (
                   <StatusPill
                     label={VISIT_OUTCOME_LABEL[visit.outcome] ?? visit.outcome}

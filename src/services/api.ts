@@ -1,5 +1,5 @@
 'use server';
-import { AUTH_COOKIE } from '@/src/session/cookie';
+import { AUTH_COOKIE, SITTING_COOKIE } from '@/src/session/cookie';
 import { cookies } from 'next/headers';
 
 /**
@@ -26,14 +26,33 @@ export type ApiResponse<T = unknown> = {
   data?: T;
 };
 
+/**
+ * Which credential a call carries.
+ *
+ * `session` is the administrator's JWT and the default. `sitting` is the public
+ * self-service form's token, which is signed with a different secret and
+ * accepted by nothing else. `none` sends no Authorization header at all, for
+ * the routes a household reaches before it has proved anything.
+ *
+ * Kept here rather than letting callers pass a raw token, so that cookie
+ * handling stays in the one file that is allowed to do it.
+ */
+export type AuthMode = 'session' | 'sitting' | 'none';
+
+const COOKIE_FOR: Record<Exclude<AuthMode, 'none'>, string> = {
+  session: AUTH_COOKIE,
+  sitting: SITTING_COOKIE,
+};
+
 async function request<TPayload, TResponse>(
   endpoint: string,
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   data?: TPayload,
-  tags?: string[]
+  tags?: string[],
+  auth: AuthMode = 'session'
 ): Promise<ApiResponse<TResponse>> {
   const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const token = auth === 'none' ? undefined : cookieStore.get(COOKIE_FOR[auth])?.value;
 
   const isFormData = data instanceof FormData;
   const reqHeaders: Record<string, string> = {};
@@ -92,16 +111,18 @@ async function request<TPayload, TResponse>(
 export async function getRequest<P, R>(
   endpoint: string,
   params?: P,
-  tags?: string[]
+  tags?: string[],
+  auth?: AuthMode
 ): Promise<ApiResponse<R>> {
-  return request<P, R>(endpoint, 'GET', params, tags);
+  return request<P, R>(endpoint, 'GET', params, tags, auth);
 }
 
 export async function postRequest<P, R>(
   endpoint: string,
-  data?: P
+  data?: P,
+  auth?: AuthMode
 ): Promise<ApiResponse<R>> {
-  return request<P, R>(endpoint, 'POST', data);
+  return request<P, R>(endpoint, 'POST', data, undefined, auth);
 }
 
 export async function patchRequest<P, R>(

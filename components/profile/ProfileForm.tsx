@@ -5,17 +5,22 @@ import { useState } from "react";
 import { updateUserNameAction } from "@/src/actions/users.actions";
 import TamilInput from "@/components/ui/TamilInput";
 import LanguageToggle from "@/components/ui/LanguageToggle";
+import { LangBadge } from "@/components/ui/Field";
 
 interface ProfileFormProps {
   userId: string;
   initialName: string;
   phone: string;
+  /** The sign-in address. Read-only: changing it is a credential change, and
+   *  there is no route for it — PATCH /users/:id takes a name and nothing
+   *  else, and inviteStaff refuses to re-point an address that is already set. */
+  email: string | null;
   /** Role names if any, otherwise the account type. See src/lib/labels.ts */
   roleLabel: string;
   parishName?: string | null;
 }
 
-export default function ProfileForm({ userId, initialName, phone, roleLabel, parishName }: ProfileFormProps) {
+export default function ProfileForm({ userId, initialName, phone, email, roleLabel, parishName }: ProfileFormProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   // The display name is one field in either language, so the form toggles.
@@ -71,7 +76,7 @@ export default function ProfileForm({ userId, initialName, phone, roleLabel, par
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "#596065" }}>
             Display Name
-          </label>
+          {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
           <TamilInput
             tamilMode={tamilMode}
             className="w-full px-4 py-3 rounded-lg border font-medium outline-none transition-all"
@@ -109,6 +114,32 @@ export default function ProfileForm({ userId, initialName, phone, roleLabel, par
               lock
             </span>
           </div>
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "#596065" }}>
+            Email
+          </label>
+          <div className="relative">
+            <input
+              className="w-full px-4 py-3 rounded-lg border cursor-not-allowed font-medium pl-10 outline-none"
+              style={{
+                borderColor: "#dce3e9",
+                backgroundColor: "#f0f4f8",
+                color: "#596065",
+              }}
+              readOnly
+              type="text"
+              value={email ?? "Not set"}
+            />
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+              lock
+            </span>
+          </div>
+          {!email && (
+            <p className="text-xs" style={{ color: "#596065" }}>
+              This account signs in by phone. Ask a super admin to add an address.
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "#596065" }}>

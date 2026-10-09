@@ -10,6 +10,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import TamilInput from "@/components/ui/TamilInput";
 import TamilTextarea from "@/components/ui/TamilTextarea";
 import LanguageToggle from "@/components/ui/LanguageToggle";
+import { LangBadge } from "@/components/ui/Field";
+import DateInput from "@/components/ui/DateInput";
 
 export default function NewAnnouncementPage() {
   const router = useRouter();
@@ -174,13 +176,18 @@ export default function NewAnnouncementPage() {
     initialValues: {
       title: "",
       description: "",
-      time: "",
+      // Kept as two fields, not one `datetime-local`: that control renders its
+      // date half in the browser's locale, so the same form read 09/10/2026 on
+      // one machine and 10/09/2026 on another.
+      date: "",
+      clock: "",
     },
     validate: (values) => {
       const errors: Record<string, string> = {};
       if (!values.title) errors.title = "Title is required";
       if (!values.description) errors.description = "Description is required";
-      if (!values.time) errors.time = "Date & time is required";
+      if (!values.date) errors.date = "Date is required";
+      if (!values.clock) errors.clock = "Time is required";
       return errors;
     },
     onSubmit: async (values, { setSubmitting }) => {
@@ -199,7 +206,7 @@ export default function NewAnnouncementPage() {
         const payload: CreateAnnouncementPayload = {
           title: values.title,
           description: values.description,
-          time: new Date(values.time).toISOString(),
+          time: new Date(`${values.date}T${values.clock}`).toISOString(),
           ...(imageFile ? { image: await toFilePayload(imageFile) } : {}),
           ...(videoFile ? { video: await toFilePayload(videoFile) } : {}),
           ...(audioFile ? { voiceNote: await toFilePayload(audioFile) } : {}),
@@ -271,7 +278,7 @@ export default function NewAnnouncementPage() {
                 htmlFor="title"
               >
                 Announcement Title <span style={{ color: "#a83836" }}>*</span>
-              </label>
+              {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
               <TamilInput
                 tamilMode={tamilMode}
                 className="w-full px-4 py-3 rounded-lg border outline-none transition-all text-sm"
@@ -298,27 +305,49 @@ export default function NewAnnouncementPage() {
               <label
                 className="block text-sm font-bold"
                 style={{ color: "#0D5C63" }}
-                htmlFor="time"
+                htmlFor="date"
               >
                 Date & Time <span style={{ color: "#a83836" }}>*</span>
               </label>
-              <input
-                className="w-full px-4 py-3 rounded-lg border outline-none transition-all text-sm"
-                style={{
-                  borderColor: fieldError("time") ? "#a83836" : "#abb3b9",
-                  backgroundColor: "#f0f4f8",
-                  color: "#2c3338",
-                }}
-                id="time"
-                name="time"
-                type="datetime-local"
-                value={formik.values.time}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {fieldError("time") && (
-                <p className="text-xs" style={{ color: "#a83836" }}>{fieldError("time")}</p>
-              )}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <DateInput
+                    className="w-full px-4 py-3 rounded-lg border outline-none transition-all text-sm"
+                    style={{
+                      borderColor: fieldError("date") ? "#a83836" : "#abb3b9",
+                      backgroundColor: "#f0f4f8",
+                      color: "#2c3338",
+                    }}
+                    id="date"
+                    name="date"
+                    value={formik.values.date}
+                    onValueChange={(iso) => formik.setFieldValue("date", iso)}
+                    onBlur={formik.handleBlur}
+                  />
+                  {fieldError("date") && (
+                    <p className="text-xs mt-1" style={{ color: "#a83836" }}>{fieldError("date")}</p>
+                  )}
+                </div>
+                <div>
+                  <input
+                    className="w-full px-4 py-3 rounded-lg border outline-none transition-all text-sm"
+                    style={{
+                      borderColor: fieldError("clock") ? "#a83836" : "#abb3b9",
+                      backgroundColor: "#f0f4f8",
+                      color: "#2c3338",
+                    }}
+                    id="clock"
+                    name="clock"
+                    type="time"
+                    value={formik.values.clock}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                  />
+                  {fieldError("clock") && (
+                    <p className="text-xs mt-1" style={{ color: "#a83836" }}>{fieldError("clock")}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Content Textarea */}
@@ -329,7 +358,7 @@ export default function NewAnnouncementPage() {
                 htmlFor="description"
               >
                 Content / Description <span style={{ color: "#a83836" }}>*</span>
-              </label>
+              {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
               <TamilTextarea
                 tamilMode={tamilMode}
                 className="w-full px-4 py-3 rounded-lg border outline-none transition-all resize-none text-sm"

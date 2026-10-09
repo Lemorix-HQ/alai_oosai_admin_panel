@@ -6,14 +6,24 @@ import PageShell from "@/components/ui/PageShell";
 import RoleForm from "@/components/access/RoleForm";
 import { FormCard } from "@/components/ui/Field";
 import { useRoles, useUpdateRole } from "@/hooks/useAccess";
+import { useSession } from "@/src/session/SessionProvider";
 import type { Role } from "@/src/types";
 
 export default function RolePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { data, isLoading } = useRoles();
+  const { user } = useSession();
   const updateRole = useUpdateRole();
 
   const role = ((data?.data ?? []) as Role[]).find((r) => r._id === id);
+
+  // Read-only for two different reasons, and the second was missing. A system
+  // role is frozen for everybody. A role with NO parish is shared by every
+  // parish — the three templates — and belongs to the super admin; opening one
+  // used to show this parish priest an edit form over everyone else's data.
+  const isSuperAdmin = user?.account_type === "super_admin";
+  const sharedTemplate = Boolean(role && !role.parish_id && !isSuperAdmin);
+  const readOnly = Boolean(role?.is_immutable) || sharedTemplate;
 
   return (
     <PageShell
@@ -25,11 +35,15 @@ export default function RolePage({ params }: { params: Promise<{ id: string }> }
         <p className="text-sm text-slate-500">Loading…</p>
       ) : !role ? (
         <p className="text-sm text-slate-500">Role not found.</p>
-      ) : role.is_immutable ? (
+      ) : readOnly ? (
         <div className="space-y-4 max-w-3xl">
           <FormCard
-            title="System role"
-            description="System roles are fixed. To give someone a narrower version, copy this role and remove what they should not have."
+            title={sharedTemplate ? "Shared template" : "System role"}
+            description={
+              sharedTemplate
+                ? "Templates are shared by every parish, so only a super admin can change one. Copy it into your parish and remove what you will not delegate."
+                : "System roles are fixed. To give someone a narrower version, copy this role and remove what they should not have."
+            }
           >
             <div className="flex flex-wrap gap-1.5">
               {role.permissions.map((p) => (

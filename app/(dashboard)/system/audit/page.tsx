@@ -9,6 +9,7 @@ import StatusPill from "@/components/ui/StatusPill";
 import { useAudit } from "@/hooks/useAccess";
 import { useParishes } from "@/hooks/useParishes";
 import type { AuditEntry, ParishWithCounts } from "@/src/types";
+import { formatDateTime } from "@/lib/utils";
 
 const TONE: Record<string, "success" | "warning" | "danger" | "info"> = {
   create: "success",
@@ -46,7 +47,7 @@ function Entry({ e }: { e: AuditEntry }) {
           <span className="text-xs text-slate-400">· {e.parish_id.name}</span>
         )}
         <span className="ml-auto text-xs text-slate-400">
-          {new Date(e.createdAt).toLocaleString()}
+          {formatDateTime(e.createdAt)}
         </span>
       </div>
       {hasDetail && (

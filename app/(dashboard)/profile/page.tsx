@@ -1,7 +1,9 @@
 import { getParishNameAction } from "@/src/actions/parishes.actions";
 import { getSession } from "@/src/session/session";
 import ProfileForm from "@/components/profile/ProfileForm";
+import StatusPill from "@/components/ui/StatusPill";
 import { displayRole } from "@/src/lib/labels";
+import { userStatusTone } from "@/src/lib/domain-labels";
 
 export default async function ProfilePage() {
   // Reads the session rather than decoding the JWT, so permissions and roles
@@ -50,6 +52,11 @@ export default async function ProfilePage() {
               <p className="font-medium" style={{ color: "#596065" }}>
                 @{profile?.phone ?? ""}
               </p>
+              {profile?.email && (
+                <p className="text-sm break-all" style={{ color: "#596065" }}>
+                  {profile.email}
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap justify-center gap-2 mt-2">
               <span
@@ -75,6 +82,7 @@ export default async function ProfilePage() {
               userId={profile?.id ?? ""}
               initialName={profile?.name ?? ""}
               phone={profile?.phone ?? ""}
+              email={profile?.email ?? null}
               roleLabel={displayRole(profile)}
               parishName={parishName}
             />
@@ -86,13 +94,21 @@ export default async function ProfilePage() {
           <h3 className="text-lg font-bold mb-6" style={{ color: "#2c3338" }}>
             Account Info
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="flex flex-col">
               <span className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "#596065" }}>
                 Phone
               </span>
               <span className="font-semibold text-sm" style={{ color: "#2c3338" }}>
                 {profile?.phone ?? "—"}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "#596065" }}>
+                Email
+              </span>
+              <span className="font-semibold text-sm break-all" style={{ color: "#2c3338" }}>
+                {profile?.email ?? "—"}
               </span>
             </div>
             <div className="flex flex-col">
@@ -108,10 +124,16 @@ export default async function ProfilePage() {
                 Status
               </span>
               <div className="mt-1">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                  Active
-                </span>
+                {profile?.status ? (
+                  <StatusPill
+                    label={profile.status.replace(/_/g, " ")}
+                    tone={userStatusTone(profile.status)}
+                  />
+                ) : (
+                  <span className="font-semibold text-sm" style={{ color: "#2c3338" }}>
+                    —
+                  </span>
+                )}
               </div>
             </div>
           </div>

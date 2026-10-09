@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/utils";
 import TamilInput from "@/components/ui/TamilInput";
 import TamilTextarea from "@/components/ui/TamilTextarea";
 import LanguageToggle from "@/components/ui/LanguageToggle";
+import { LangBadge } from "@/components/ui/Field";
 
 export default function EditReportPage() {
   const router = useRouter();
@@ -135,7 +136,7 @@ export default function EditReportPage() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Report Title <span style={{ color: "#a83836" }}>*</span>
-                  </label>
+                  {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                   <TamilInput
                     tamilMode={tamilMode}
                     className="w-full px-4 py-3 rounded-lg border outline-none"
@@ -157,7 +158,7 @@ export default function EditReportPage() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Description
-                  </label>
+                  {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                   <TamilTextarea
                     tamilMode={tamilMode}
                     className="w-full px-4 py-3 rounded-lg border outline-none resize-none"

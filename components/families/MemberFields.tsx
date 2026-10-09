@@ -1,6 +1,6 @@
 "use client";
 
-import { Field, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
+import { DateInput, Field, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
 import LookupCombobox from "@/components/ui/LookupCombobox";
 import {
   COMMON_COUNTRIES,
@@ -266,16 +266,16 @@ export default function MemberFields({
   return (
     <>
       <div className={compact ? "space-y-3" : "grid sm:grid-cols-2 gap-4"}>
-        <Field label="Name in Tamil">
+        <Field label="Name in Tamil" lang="tamil">
           <TamilTextInput value={v.name_ta} onChange={(e) => set({ name_ta: e.target.value })} />
         </Field>
-        <Field label="Name in English">
+        <Field label="Name in English" lang="english">
           <TextInput value={v.name} onChange={(e) => set({ name: e.target.value })} />
         </Field>
 
         {!compact && (
           <>
-            <Field label="Baptismal name">
+            <Field label="Baptismal name" lang="tamil">
               <TamilTextInput
                 value={v.baptismal_name}
                 onChange={(e) => set({ baptismal_name: e.target.value })}
@@ -316,10 +316,9 @@ export default function MemberFields({
           label="Date of birth"
           hint={compact ? "The age is computed from it — never stored." : undefined}
         >
-          <TextInput
-            type="date"
+          <DateInput
             value={v.date_of_birth}
-            onChange={(e) => set({ date_of_birth: e.target.value })}
+            onValueChange={(iso) => set({ date_of_birth: iso })}
           />
         </Field>
 
@@ -512,7 +511,7 @@ export default function MemberFields({
         );
       })}
 
-      <Field label="Notes">
+      <Field label="Notes" lang="tamil">
         <TamilTextArea rows={2} value={v.notes} onChange={(e) => set({ notes: e.target.value })} />
       </Field>
 

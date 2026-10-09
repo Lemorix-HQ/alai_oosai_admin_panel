@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormCard } from "@/components/ui/Field";
 import { useFamilyTimeline } from "@/hooks/useFamilies";
 import type { FamilyEvent } from "@/src/types";
+import { formatDate } from "@/lib/utils";
 
 /**
  * What has happened to one household, newest first.
@@ -31,13 +32,6 @@ const LOOK: Record<
   "member.remove": { icon: "person_remove", label: "Removed", tone: "#9f1239" },
 };
 
-function when(at: string) {
-  return new Date(at).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 function People({ members }: { members: FamilyEvent["members"] }) {
   if (!members.length) return null;
@@ -124,7 +118,7 @@ function Event({ e, last }: { e: FamilyEvent; last: boolean }) {
         {e.reason && <p className="text-xs text-slate-500 mt-0.5">{e.reason}</p>}
 
         <p className="text-xs text-slate-400 mt-0.5">
-          {when(e.at)}
+          {formatDate(e.at)}
           {e.actor?.name ? ` · ${e.actor.name}` : ""}
           {!e.recorded && (
             <span

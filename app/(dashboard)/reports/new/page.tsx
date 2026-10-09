@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import TamilInput from "@/components/ui/TamilInput";
 import TamilTextarea from "@/components/ui/TamilTextarea";
 import LanguageToggle from "@/components/ui/LanguageToggle";
+import { LangBadge } from "@/components/ui/Field";
 
 export default function NewReportPage() {
   const router = useRouter();
@@ -123,7 +124,7 @@ export default function NewReportPage() {
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Report Title <span style={{ color: "#a83836" }}>*</span>
-                    </label>
+                    {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                     <TamilInput
                       tamilMode={tamilMode}
                       className="w-full px-4 py-3 rounded-lg border outline-none transition-all"
@@ -146,7 +147,7 @@ export default function NewReportPage() {
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Description{" "}
                       <span className="text-slate-400 font-normal">(Optional)</span>
-                    </label>
+                    {" "}<LangBadge lang={tamilMode ? "tamil" : "english"} /></label>
                     <TamilTextarea
                       tamilMode={tamilMode}
                       className="w-full px-4 py-3 rounded-lg border outline-none transition-all resize-none"

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import PageShell from "@/components/ui/PageShell";
 import StatusPill from "@/components/ui/StatusPill";
-import { Field, FormActions, FormCard, Select, TamilTextArea, TextInput } from "@/components/ui/Field";
+import { DateInput, Field, FormActions, FormCard, Select, TamilTextArea } from "@/components/ui/Field";
 import { useFamily, useTransferFamily } from "@/hooks/useFamilies";
 import { useAnbiyams, useNextSerial } from "@/hooks/useStructure";
 import { cardNumber } from "@/src/lib/domain-labels";
@@ -142,14 +142,10 @@ export default function TransferFamilyPage({ params }: { params: Promise<{ id: s
           )}
 
           <Field label="Effective date" required>
-            <TextInput
-              type="date"
-              value={effectiveOn}
-              onChange={(e) => setEffectiveOn(e.target.value)}
-            />
+            <DateInput value={effectiveOn} onValueChange={setEffectiveOn} />
           </Field>
 
-          <Field label="Reason">
+          <Field label="Reason" lang="tamil">
             <TamilTextArea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
           </Field>
         </FormCard>

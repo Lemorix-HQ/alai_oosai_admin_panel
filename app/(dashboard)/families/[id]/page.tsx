@@ -7,6 +7,7 @@ import StatusPill from "@/components/ui/StatusPill";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { FormCard, Select } from "@/components/ui/Field";
 import FamilyTimeline from "@/components/families/FamilyTimeline";
+import AccessCodeCard from "@/components/families/AccessCodeCard";
 import { PermissionGate } from "@/src/session/PermissionGate";
 import { P } from "@/src/session/permissions";
 import { useCloseFamily, useFamily, useRemoveMember, useUpdateFamily } from "@/hooks/useFamilies";
@@ -313,6 +314,16 @@ export default function FamilyPage({ params }: { params: Promise<{ id: string }>
             <FormCard title="Notes">
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{family.notes}</p>
             </FormCard>
+          )}
+
+          {/* Gated here rather than inside the card so the status query never
+              mounts for staff who cannot issue one — the route requires the
+              permission and would answer 403. Same reasoning as
+              PermissionGateMemberRow below. */}
+          {family.status === "active" && (
+            <PermissionGate permission={P.family.accessCodeManage}>
+              <AccessCodeCard familyId={id} familyCode={family.family_code} />
+            </PermissionGate>
           )}
 
           {family.status === "active" && (

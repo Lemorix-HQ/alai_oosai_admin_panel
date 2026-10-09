@@ -1,4 +1,5 @@
 export * from './domain';
+import type { UserStatus } from './domain';
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -70,6 +71,12 @@ export interface SessionUser {
   id: string;
   name: string;
   phone: string | null;
+  /** What an administrator signs in with. Null for a parishioner, and for a
+   *  staff account created before email sign-in existed. */
+  email: string | null;
+  /** Whether this account may still be used. The profile page used to print a
+   *  hard-coded "Active" because this was not here to read. */
+  status: UserStatus;
   account_type: AccountType;
   parish_id: string | null;
   member_id: string | null;
@@ -98,6 +105,7 @@ export interface Address {
 export interface ParishSettings {
   min_age_for_head: number;
   allow_head_change_to_son: boolean;
+  min_age_for_app_login: number;
   currency: string;
   default_offering_minimum: number | null;
 }
