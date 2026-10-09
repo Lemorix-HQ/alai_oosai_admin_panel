@@ -124,7 +124,6 @@ function RaiseForm() {
             {families.map((f) => (
               <option key={f._id} value={f._id}>
                 {f.family_code}
-                {f.locality ? ` · ${f.locality}` : ""}
               </option>
             ))}
           </Select>

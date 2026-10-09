@@ -51,8 +51,6 @@ export interface CreateFamilyPayload {
   card_year?: number;
   primary_phone?: string;
   address?: Address;
-  locality?: string;
-  house_note?: string;
   residence?: Residence;
   pastoral_flags?: PastoralFlag[];
   notes?: string;
@@ -75,8 +73,6 @@ export async function createFamilyAction(payload: CreateFamilyPayload) {
 export interface UpdateFamilyPayload {
   primary_phone?: string;
   address?: Address;
-  locality?: string;
-  house_note?: string;
   residence?: Residence;
   pastoral_flags?: PastoralFlag[];
   notes?: string;
@@ -149,7 +145,6 @@ export interface MemberActivityPayload {
   standard?: string;
   course_year?: number;
   degree?: string;
-  nature_of_work?: string;
   place_id?: string;
   as_of_year: number;
 }

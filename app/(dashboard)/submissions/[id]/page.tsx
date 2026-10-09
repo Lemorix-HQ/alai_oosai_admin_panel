@@ -50,7 +50,6 @@ const ACTIVITY_FIELD_LABEL: Record<string, string> = {
   standard: "Standard",
   course_year: "Year of course",
   degree: "Degree",
-  nature_of_work: "Nature of work",
   as_of_year: "True as of",
 };
 
@@ -233,7 +232,6 @@ export default function SubmissionPage({ params }: { params: Promise<{ id: strin
                   <Link href={`/families/${family._id}`} style={{ color: "#0D5C63" }} className="font-bold">
                     {family.family_code}
                   </Link>
-                  {family.locality ? <span className="text-slate-500"> · {family.locality}</span> : null}
                 </dd>
               </div>
             )}

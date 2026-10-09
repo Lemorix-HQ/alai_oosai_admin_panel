@@ -219,8 +219,6 @@ function EditHousehold({
   const minAge = snapshot.rules.min_age_for_phone;
 
   const [phone, setPhone] = useState(snapshot.family.primary_phone ?? "");
-  const [locality, setLocality] = useState(snapshot.family.locality ?? "");
-  const [houseNote, setHouseNote] = useState(snapshot.family.house_note ?? "");
 
   const [people, setPeople] = useState<Record<string, MemberState>>(() =>
     Object.fromEntries(
@@ -254,8 +252,6 @@ function EditHousehold({
 
     const family: NonNullable<SubmitSittingPayload["family"]> = {};
     if (phone.trim() !== (snapshot.family.primary_phone ?? "")) family.primary_phone = phone.trim();
-    if (locality.trim() !== (snapshot.family.locality ?? "")) family.locality = locality.trim();
-    if (houseNote.trim() !== (snapshot.family.house_note ?? "")) family.house_note = houseNote.trim();
 
     const members: NonNullable<SubmitSittingPayload["members"]> = [];
     const deceased: NonNullable<SubmitSittingPayload["deceased"]> = [];
@@ -332,7 +328,7 @@ function EditHousehold({
             {snapshot.family.family_code}
           </h1>
           <p className="text-sm" style={{ color: "#596065" }}>
-            {snapshot.family.locality ?? ""} — உங்கள் குடும்ப விவரத்தைச் சரிபார்த்துத் திருத்துங்கள்.
+            உங்கள் குடும்ப விவரத்தைச் சரிபார்த்துத் திருத்துங்கள்.
           </p>
           <p className="text-xs text-slate-500">
             Check and correct your family&apos;s details. Nothing changes on the parish record
@@ -341,6 +337,10 @@ function EditHousehold({
         </header>
 
         <form onSubmit={submit} className="space-y-4">
+          {/* One field, and that is the whole point of the card: the phone is
+              the reason this form exists (the seed carries `phone_key: null` on
+              1,755 families). Locality and the house note were removed from the
+              schema on 9 October 2026. */}
           <Card title="குடும்ப விவரம் (The household)">
             <Field
               label="குடும்ப கைபேசி எண் (Household phone)"
@@ -354,12 +354,6 @@ function EditHousehold({
                 autoComplete="tel"
                 onChange={(e) => setPhone(e.target.value)}
               />
-            </Field>
-            <Field label="ஊர் / பகுதி (Locality)">
-              <TextInput value={locality} onChange={(e) => setLocality(e.target.value)} />
-            </Field>
-            <Field label="வீட்டு அடையாளம் (House note)" hint="எ.கா. கோவில் அருகில் — a landmark that helps find the house.">
-              <TextInput value={houseNote} onChange={(e) => setHouseNote(e.target.value)} />
             </Field>
           </Card>
 

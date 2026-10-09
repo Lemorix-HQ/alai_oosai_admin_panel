@@ -54,7 +54,6 @@ export default function VisitRoundPage({ params }: { params: Promise<{ id: strin
       family: {
         _id: f._id,
         family_code: f.family_code,
-        locality: f.locality,
         primary_phone: f.primary_phone,
       },
       visit: null,
@@ -62,12 +61,11 @@ export default function VisitRoundPage({ params }: { params: Promise<{ id: strin
     }));
 
     const done: ChecklistRow[] = [...latest.entries()].map(([fid, v]) => {
-      const ref = v.family_id as { family_code?: string; locality?: string; primary_phone?: string };
+      const ref = v.family_id as { family_code?: string; primary_phone?: string };
       return {
         family: {
           _id: fid,
           family_code: ref?.family_code ?? "—",
-          locality: ref?.locality,
           primary_phone: ref?.primary_phone,
         },
         visit: v,
@@ -173,8 +171,7 @@ export default function VisitRoundPage({ params }: { params: Promise<{ id: strin
                   {family.family_code}
                 </Link>
                 <p className="text-xs text-slate-500 truncate">
-                  {family.locality || "—"}
-                  {family.primary_phone ? ` · ${family.primary_phone}` : ""}
+                  {family.primary_phone || "—"}
                   {visit ? ` · ${formatDateOr(visit.visit_date)}` : ""}
                   {visit?.acknowledgement ? ` · ${visit.acknowledgement}` : ""}
                 </p>

@@ -138,7 +138,7 @@ function FamiliesList() {
       )}
 
       <FilterBar
-        searchPlaceholder="Search by head or spouse name, family code, phone or locality…"
+        searchPlaceholder="Search by head or spouse name, family code or phone…"
         filters={[
           {
             key: "status",
