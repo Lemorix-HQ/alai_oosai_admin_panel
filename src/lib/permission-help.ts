@@ -246,6 +246,25 @@ export const PERMISSION_HELP: Record<string, PermissionHelp> = {
     description:
       "Grant a role to someone, or revoke it. Never to themselves, and never outside their own parish.",
   },
+
+  // ---------------------------------------------------------------- sodality
+  "sodality.read": {
+    title: "See sodalities",
+    description: "View the parish's sodalities and who belongs to each one.",
+  },
+  "sodality.read.own": {
+    title: "See your own sodalities",
+    description: "A parishioner sees which sodalities they themselves belong to.",
+  },
+  "sodality.manage": {
+    title: "Manage sodalities",
+    description: "Add a sodality, rename one, or retire one.",
+  },
+  "sodality.member.manage": {
+    title: "Enrol and remove sodality members",
+    description:
+      "Add a member to a sodality or end their membership, through a narrow search — not the full census.",
+  },
 };
 
 /** Falls back rather than showing an empty card for a permission added later. */

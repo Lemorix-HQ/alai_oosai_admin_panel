@@ -59,4 +59,10 @@ export const P = {
     report: 'report.manage',
   },
   access: { roleManage: 'role.manage', userManage: 'user.manage', assignRole: 'user.assign_role' },
+  sodality: {
+    read: 'sodality.read',
+    readOwn: 'sodality.read.own',
+    manage: 'sodality.manage',
+    memberManage: 'sodality.member.manage',
+  },
 } as const;

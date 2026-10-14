@@ -88,6 +88,46 @@ export interface StructureTree {
   totals: { mandalams: number; anbiyams: number; families: number };
 }
 
+// --------------------------------------------------------------------- sodality
+
+/**
+ * A parish association (சபை) — Legion of Mary, Sacred Heart Sodality, St.
+ * Vincent de Paul. Parish-wide, not attached to a Mandalam or Anbiyam: see
+ * ACCESS_CONTROL.md for why scope does not reach it.
+ */
+export interface Sodality {
+  _id: string;
+  parish_id: string;
+  name: string;
+  name_ta?: string;
+  code: string;
+  patron_saint?: string;
+  status: 'active' | 'inactive';
+  /** Present when the list is asked for counts. */
+  member_count?: number;
+}
+
+export type SodalityMembershipRole = 'member' | 'animator' | 'asst_animator' | 'secretary' | 'treasurer';
+
+export interface SodalityMembership {
+  _id: string;
+  parish_id: string;
+  sodality_id: Ref<Sodality>;
+  member_id: Ref<{ _id: string; name: string; name_ta?: string; family_id?: string }>;
+  role: SodalityMembershipRole;
+  joined_on: string;
+  /** null = still a member. Leaving sets this; the row is never deleted. */
+  left_on?: string | null;
+}
+
+/** The narrow row `/sodalities/:id/candidates` returns — no phone, no date of birth. */
+export interface SodalityCandidate {
+  _id: string;
+  name: string;
+  name_ta?: string | null;
+  family_code?: string | null;
+}
+
 export interface NextSerial {
   anbiyam_id: string;
   anbiyam_code: string;

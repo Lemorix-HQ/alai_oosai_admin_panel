@@ -149,6 +149,19 @@ tagArr.forEach((tag) => formData.append("tags[]", tag)); // WRONG
 ### Parishes (`/parishes`)
 - `GET /parishes/:id` — No auth required. Returns `{ _id, name }` directly (NOT in the standard `{ success, data }` format). Use `getParishNameAction` from `src/actions/parishes.actions.ts` which handles this non-standard response.
 
+### Sodalities (`/sodalities`)
+- Parish-wide, not Anbiyam-scoped — a sodality is a parish association (Legion of Mary,
+  Sacred Heart Sodality), not a place. `sodality.manage` / `sodality.read` / `sodality.member.manage`.
+- `GET /sodalities` — paginated, `with_counts=true` adds `member_count` per row.
+- `GET /sodalities/:id/candidates?q=` — the member picker for enrolment. Guarded by
+  `sodality.member.manage`, **not** `member.read` — it returns only `{ _id, name, name_ta, family_code }`,
+  never a phone or date of birth, so an animator role never needs the open census.
+- `POST /sodalities/:id/members` enrols; `POST /sodalities/:id/members/:membershipId/leave` ends a
+  membership (sets `left_on`, never deletes). `GET /sodalities/:id/members?include_past=true` shows
+  former members too.
+- `DELETE /sodalities/:id` is refused while an active member remains.
+- `GET /me/sodalities` — a parishioner's own memberships, `sodality.read.own`.
+
 ---
 
 ## File Structure Reference
@@ -162,11 +175,13 @@ src/
 │   ├── announcements.actions.ts
 │   ├── reports.actions.ts   # UpdateReportPayload type exported here
 │   ├── users.actions.ts     # updateUserNameAction
-│   └── parishes.actions.ts  # getParishNameAction — handles non-standard parishes/:id response
+│   ├── parishes.actions.ts  # getParishNameAction — handles non-standard parishes/:id response
+│   └── sodalities.actions.ts # listSodalitiesAction, add/leave/candidates for the member picker
 ├── hooks/
 │   ├── useEvents.ts         # useAdminEvents, useEvent, useCreateEvent, useUpdateEvent, useDeleteEvent
 │   ├── useAnnouncements.ts  # useAdminAnnouncements, useCreateAnnouncement ONLY (no update/delete hooks)
-│   └── useReports.ts        # useAdminReports, useCreateReport, useUpdateReport, useDeleteReport (no useReport)
+│   ├── useReports.ts        # useAdminReports, useCreateReport, useUpdateReport, useDeleteReport (no useReport)
+│   └── useSodalities.ts     # useSodalities, useSodality, useSodalityMembers, useSodalityCandidates
 └── types/index.ts           # ApiResponse, Event, Announcement, Report, User, JwtPayload
 ```
 
