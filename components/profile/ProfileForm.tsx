@@ -2,10 +2,13 @@
 
 import { useFormik } from "formik";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateUserNameAction } from "@/src/actions/users.actions";
 import TamilInput from "@/components/ui/TamilInput";
+import AvatarUpload from "@/components/ui/AvatarUpload";
 import LanguageToggle from "@/components/ui/LanguageToggle";
 import { LangBadge } from "@/components/ui/Field";
+import { uploadStaffPhotoAction } from "@/actions/upload.actions";
 
 interface ProfileFormProps {
   userId: string;
@@ -18,9 +21,13 @@ interface ProfileFormProps {
   /** Role names if any, otherwise the account type. See src/lib/labels.ts */
   roleLabel: string;
   parishName?: string | null;
+  /** The account's own picture, from /auth/me. */
+  initialPhoto?: string | null;
 }
 
-export default function ProfileForm({ userId, initialName, phone, email, roleLabel, parishName }: ProfileFormProps) {
+export default function ProfileForm({ userId, initialName, phone, email, roleLabel, parishName, initialPhoto }: ProfileFormProps) {
+  const router = useRouter();
+  const [photo, setPhoto] = useState<string | undefined>(initialPhoto ?? undefined);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   // The display name is one field in either language, so the form toggles.
@@ -71,6 +78,21 @@ export default function ProfileForm({ userId, initialName, phone, email, roleLab
           {apiError}
         </div>
       )}
+
+      <AvatarUpload
+        name={formik.values.name || initialName}
+        value={photo}
+        size={96}
+        upload={uploadStaffPhotoAction}
+        onChange={(url) => {
+          // This route saves on upload — it writes BaseUser.photo for the
+          // signed-in account itself — so there is nothing to submit, but the
+          // header reads the session and needs re-reading to catch up.
+          setPhoto(url);
+          setSuccessMsg("Photo updated.");
+          router.refresh();
+        }}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
