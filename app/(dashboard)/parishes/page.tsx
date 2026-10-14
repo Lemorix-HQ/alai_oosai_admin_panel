@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import Avatar from "@/components/ui/Avatar";
 import PageShell from "@/components/ui/PageShell";
 import ResourceTable, { type Column } from "@/components/ui/ResourceTable";
 import StatCard from "@/components/ui/StatCard";
@@ -30,9 +31,12 @@ export default function ParishesPage() {
       key: "name",
       header: "Parish",
       render: (p) => (
-        <span>
-          {p.name}
-          {p.name_ta && <span className="block text-xs text-slate-500">{p.name_ta}</span>}
+        <span className="inline-flex items-center gap-2">
+          <Avatar name={p.name} photo={p.logo} size={28} />
+          <span>
+            {p.name}
+            {p.name_ta && <span className="block text-xs text-slate-500">{p.name_ta}</span>}
+          </span>
         </span>
       ),
     },

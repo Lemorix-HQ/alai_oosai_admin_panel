@@ -441,6 +441,9 @@ export interface ParishWithCounts {
   diocese?: string | null;
   deanery?: string | null;
   patron_saint?: string | null;
+  // The service spreads the full lean parish document (`...p`) into each row,
+  // so `logo` is already on the wire — only this type was never told about it.
+  logo?: string | null;
   status?: 'active' | 'inactive';
   createdAt?: string;
   family_count: number;
