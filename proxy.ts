@@ -37,7 +37,18 @@ const PUBLIC_PATHS = [
  * are bounced to his dashboard and the form is unusable exactly where it is
  * meant to be used.
  */
-const TOKEN_PATHS = ["/accept-invite", "/reset-password", "/family-update"];
+const TOKEN_PATHS = [
+  "/accept-invite",
+  "/reset-password",
+  "/family-update",
+  /**
+   * Staff use Tamil typing throughout the dashboard, signed in. Without this,
+   * "token && isPublic && !carriesToken" below redirects every authenticated
+   * request to "/" instead of returning JSON, and fetchSuggestions() swallows
+   * the failure silently — no error, just an empty suggestion list.
+   */
+  "/api/transliterate",
+];
 
 /**
  * Edge-level authentication. Next 16 calls this `proxy`; it is the former
