@@ -139,6 +139,21 @@ tagArr.forEach((tag) => formData.append("tags[]", tag)); // WRONG
 
 **Missing route:** `GET /reports/:id` does not exist. The edit page loads from the full admin list and filters by ID client-side.
 
+### Upload (`/upload`)
+| Route | Method | Permission | Notes |
+|-------|--------|------------|-------|
+| `/upload/parish/logo` | POST | `parish.update` | `multipart/form-data`, field `file`, image only, max 5MB. Returns `{ url }` — attach it yourself with `PATCH /parishes/:id { logo: url }`. |
+| `/upload/member/photo` | POST | `member.update` | Same shape. Returns `{ url }` — attach with `PATCH /members/:id { photo: url }`. |
+| `/upload/staff/photo` | POST | — (self-scoped by account type) | **Takes no id.** Resolves the caller from the JWT and writes `BaseUser.photo` itself, in the same request — there is no follow-up PATCH, and nothing is returned to attach. |
+
+Two traps worth knowing before you build against these:
+- `PATCH /parishes/:id` — the one you attach a logo URL with — calls `assertSuperAdmin`
+  regardless of `parish.update`. A priest who can successfully upload the logo is still
+  refused at the attach step; surface that refusal, don't treat the upload as the save.
+- `/upload/staff/photo` has no `@RequirePermissions` — it is restricted to
+  `parish_staff`/`super_admin` by account type in the handler, not by the permissions
+  table, and it saves on upload rather than waiting for a PATCH.
+
 ### Auth (`/auth`)
 - `POST /auth/send-otp` — body: `{ phone_number: string }` (**underscore**, not `phone`)
 - `POST /auth/verify-otp` — body: `{ phone_number: string, otp: number }` (**`otp` must be a number**, not string — backend uses `@IsNumber()`)
