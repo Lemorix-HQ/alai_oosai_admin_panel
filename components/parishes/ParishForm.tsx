@@ -113,7 +113,7 @@ export default function ParishForm({
             size={88}
             upload={uploadParishLogoAction}
             onChange={(url) => setValues((v) => ({ ...v, logo: url }))}
-            hint="Appears beside the parish name, and on the app's parish screen."
+            hint="Appears beside the parish name, and on the app's parish screen. Stored once you save this form."
           />
         </div>
         <div className="grid sm:grid-cols-2 gap-4">

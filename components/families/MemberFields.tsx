@@ -273,7 +273,7 @@ export default function MemberFields({
           size={72}
           upload={uploadMemberPhotoAction}
           onChange={(url) => set({ photo: url })}
-          hint="Optional. Shown on the family card and in the app."
+          hint="Optional. Shown on the family card and in the app. Stored once this form is saved."
         />
       </div>
       <div className={compact ? "space-y-3" : "grid sm:grid-cols-2 gap-4"}>
