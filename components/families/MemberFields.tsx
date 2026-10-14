@@ -2,6 +2,8 @@
 
 import { DateInput, Field, Select, TamilTextArea, TamilTextInput, TextInput } from "@/components/ui/Field";
 import LookupCombobox from "@/components/ui/LookupCombobox";
+import AvatarUpload from "@/components/ui/AvatarUpload";
+import { uploadMemberPhotoAction } from "@/actions/upload.actions";
 import {
   COMMON_COUNTRIES,
   MARITAL_LABEL,
@@ -112,6 +114,7 @@ function workToValues(b: Member["work"]): ActivityValues {
 export interface MemberValues {
   name: string;
   name_ta: string;
+  photo?: string;
   baptismal_name: string;
   initial: string;
   gender: "male" | "female";
@@ -144,6 +147,7 @@ export function memberToValues(m: Member): MemberValues {
   return emptyMember({
     name: m.name ?? "",
     name_ta: m.name_ta ?? "",
+    photo: m.photo ?? undefined,
     baptismal_name: m.baptismal_name ?? "",
     initial: m.initial ?? "",
     gender: (m.gender as "male" | "female") ?? "male",
@@ -202,6 +206,7 @@ export function valuesToPayload(v: MemberValues): MemberPayload & { status?: str
         }
       : null,
     phone: t(v.phone),
+    photo: v.photo,
     blood_group: t(v.blood_group),
     notes: t(v.notes),
     status: v.status,
@@ -261,6 +266,16 @@ export default function MemberFields({
 
   return (
     <>
+      <div className="mb-4">
+        <AvatarUpload
+          name={v.name || v.name_ta || "Member"}
+          value={v.photo}
+          size={72}
+          upload={uploadMemberPhotoAction}
+          onChange={(url) => set({ photo: url })}
+          hint="Optional. Shown on the family card and in the app."
+        />
+      </div>
       <div className={compact ? "space-y-3" : "grid sm:grid-cols-2 gap-4"}>
         <Field label="Name in Tamil" lang="tamil">
           <TamilTextInput value={v.name_ta} onChange={(e) => set({ name_ta: e.target.value })} />
