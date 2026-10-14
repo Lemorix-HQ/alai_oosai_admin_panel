@@ -394,6 +394,7 @@ export interface StaffUser {
   name: string;
   phone?: string | null;
   email?: string | null;
+  photo?: string | null;
   account_type: 'super_admin' | 'parish_staff' | 'parishioner';
   status: UserStatus;
   parish_id?: string | null;

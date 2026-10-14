@@ -49,6 +49,7 @@ export interface User {
   phone: string;
   account_type: AccountType;
   parish_id?: string;
+  photo?: string | null;
 }
 
 /**
@@ -74,6 +75,9 @@ export interface SessionUser {
   /** What an administrator signs in with. Null for a parishioner, and for a
    *  staff account created before email sign-in existed. */
   email: string | null;
+  /** The account's own picture. Null for everyone who has not set one, which
+   *  is almost everyone — every render site falls back to initials. */
+  photo: string | null;
   /** Whether this account may still be used. The profile page used to print a
    *  hard-coded "Active" because this was not here to read. */
   status: UserStatus;
