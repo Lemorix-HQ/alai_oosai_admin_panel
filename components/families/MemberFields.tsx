@@ -272,6 +272,7 @@ export default function MemberFields({
           value={v.photo}
           size={72}
           upload={uploadMemberPhotoAction}
+          cropTitle="Crop member photo"
           onChange={(url) => set({ photo: url })}
           hint="Optional. Shown on the family card and in the app. Stored once this form is saved."
         />

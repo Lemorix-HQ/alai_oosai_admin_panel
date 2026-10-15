@@ -84,6 +84,7 @@ export default function ProfileForm({ userId, initialName, phone, email, roleLab
         value={photo}
         size={96}
         upload={uploadStaffPhotoAction}
+        cropTitle="Crop profile photo"
         onChange={(url) => {
           // This route saves on upload — it writes BaseUser.photo for the
           // signed-in account itself — so there is nothing to submit, but the

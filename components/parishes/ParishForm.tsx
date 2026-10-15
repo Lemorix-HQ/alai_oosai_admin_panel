@@ -112,6 +112,7 @@ export default function ParishForm({
             value={values.logo || undefined}
             size={88}
             upload={uploadParishLogoAction}
+            cropTitle="Crop parish logo"
             onChange={(url) => setValues((v) => ({ ...v, logo: url }))}
             hint="Appears beside the parish name, and on the app's parish screen. Stored once you save this form."
           />

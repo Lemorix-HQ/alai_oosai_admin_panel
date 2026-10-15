@@ -2,12 +2,21 @@
 
 import { useRef, useState } from "react";
 import Avatar from "@/components/ui/Avatar";
+import ImageCropDialog from "@/components/ui/ImageCropDialog";
 import type { ApiResponse } from "@/src/types";
 
 /**
- * Upload first, attach second — the pattern the event form already uses. The
- * file goes to R2 the moment it is chosen and this reports the URL; the parent
- * form stores it like any other text field and saves it with everything else.
+ * Crop first, upload second, attach third.
+ *
+ * The file is never sent as chosen: the picker opens ImageCropDialog, and what
+ * goes to R2 is the square the person framed. Avatars render in a circle with
+ * `object-fit: cover`, so an off-square photo was always being cropped — this
+ * only moves the choice of which part survives from the browser to the user.
+ *
+ * What happens after the upload differs by route and that is deliberate:
+ * /upload/staff/photo writes BaseUser itself, while the parish and member
+ * routes hand back a URL for the entity's own PATCH to store. Hence `hint`,
+ * which is where each caller says whether a save is still needed.
  */
 export default function AvatarUpload({
   name,
@@ -16,6 +25,7 @@ export default function AvatarUpload({
   upload,
   onChange,
   hint,
+  cropTitle,
 }: {
   name: string;
   value?: string;
@@ -23,14 +33,34 @@ export default function AvatarUpload({
   upload: (fd: FormData) => Promise<ApiResponse<{ url: string }>>;
   onChange: (url: string) => void;
   hint?: string;
+  cropTitle?: string;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The object URL is made here, in an event handler, and released by whichever
+  // of the two exits the dialog takes. Creating it inside the dialog instead
+  // would put its lifetime at the mercy of React's double-invoked mount, which
+  // revokes it before the cropper ever reads it.
+  const [picked, setPicked] = useState<{ file: File; url: string } | null>(null);
 
-  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
+  function pick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    // Cleared straight away so choosing the same file twice still fires a
+    // change event — after a cancelled crop as much as after a failed upload.
+    if (input.current) input.current.value = "";
     if (!file) return;
+    setError(null);
+    setPicked({ file, url: URL.createObjectURL(file) });
+  }
+
+  function discard() {
+    if (picked) URL.revokeObjectURL(picked.url);
+    setPicked(null);
+  }
+
+  async function send(file: File) {
+    discard();
     setError(null);
     setBusy(true);
     try {
@@ -43,8 +73,6 @@ export default function AvatarUpload({
       setError("Network error. Please try again.");
     } finally {
       setBusy(false);
-      // Let the same file be chosen again after a failure.
-      if (input.current) input.current.value = "";
     }
   }
 
@@ -72,6 +100,16 @@ export default function AvatarUpload({
           {error ?? hint ?? "JPEG, PNG, GIF or WebP. Up to 5 MB."}
         </p>
       </div>
+
+      {picked && (
+        <ImageCropDialog
+          file={picked.file}
+          src={picked.url}
+          title={cropTitle}
+          onCancel={discard}
+          onCropped={send}
+        />
+      )}
     </div>
   );
 }
