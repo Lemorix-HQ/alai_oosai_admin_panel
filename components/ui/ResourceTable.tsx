@@ -10,6 +10,8 @@ export interface Column<T> {
   render: (row: T) => React.ReactNode;
   /** Hidden below sm, for columns that are useful but not essential. */
   secondary?: boolean;
+  /** Left out of the mobile cards, where the whole card is a link and a button inside it would navigate. */
+  tableOnly?: boolean;
   className?: string;
 }
 
@@ -43,7 +45,7 @@ export default function ResourceTable<T extends { _id: string }>({
   }
 
   const primary = columns.find((c) => c.key === primaryKey) ?? columns[0];
-  const rest = columns.filter((c) => c.key !== primary.key);
+  const rest = columns.filter((c) => c.key !== primary.key && !c.tableOnly);
 
   return (
     <>

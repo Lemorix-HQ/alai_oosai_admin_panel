@@ -104,6 +104,7 @@ export function userStatusTone(
       return "warning";
     case "inactive":
     case "banned":
+    case "deleted":
       return "danger";
     // The enum is closed, so anything else is a data error rather than a state.
     default:
