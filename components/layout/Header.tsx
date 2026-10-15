@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import ParishDropdown from "./ParishDropdown";
+import Avatar from "@/components/ui/Avatar";
 import { useSession } from "@/src/session/SessionProvider";
 import type { Parish } from "@/src/types";
 
@@ -62,12 +63,6 @@ function getTitle(pathname: string): string {
   return "Dashboard";
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return (name || "?").slice(0, 2).toUpperCase();
-}
-
 interface HeaderProps {
   parishName: string | null;
   currentParishId: string | null;
@@ -117,13 +112,7 @@ export default function Header({
           )
         )}
         <div className="flex items-center gap-2">
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
-            style={{ backgroundColor: "#0D5C63", color: "#ffffff" }}
-            title={name}
-          >
-            {getInitials(name)}
-          </div>
+          <Avatar name={name} photo={user?.photo} size={36} />
           <span className="hidden md:inline font-medium" style={{ color: "#1f2937" }}>
             {name}
           </span>

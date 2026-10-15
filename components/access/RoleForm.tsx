@@ -38,6 +38,7 @@ const AREA_LABEL: Record<string, string> = {
   liturgy: "Mass intentions",
   comms: "Communication",
   access: "Roles and users",
+  sodality: "Sodalities",
 };
 
 /**

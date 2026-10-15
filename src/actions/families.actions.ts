@@ -127,6 +127,7 @@ export interface MemberPayload {
   marital_status?: string;
   phone?: string;
   email?: string;
+  photo?: string;
   blood_group?: string;
   notes?: string;
   // null removes a block that was previously recorded; undefined leaves it

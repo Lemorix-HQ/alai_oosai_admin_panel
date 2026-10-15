@@ -4,6 +4,7 @@ import Link from "next/link";
 import { use, useState } from "react";
 import PageShell from "@/components/ui/PageShell";
 import StatusPill from "@/components/ui/StatusPill";
+import Avatar from "@/components/ui/Avatar";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { FormCard, Select } from "@/components/ui/Field";
 import FamilyTimeline from "@/components/families/FamilyTimeline";
@@ -41,7 +42,9 @@ function MemberRow({
 
   return (
     <li className="py-3 flex items-start justify-between gap-3 border-t first:border-t-0" style={{ borderColor: "#e2e8f0" }}>
-      <div className="min-w-0">
+      <div className="flex items-start gap-3 min-w-0">
+        <Avatar name={m.name_ta || m.name} photo={m.photo} size={32} className="mt-0.5" />
+        <div className="min-w-0">
         <p className="font-semibold text-sm" style={{ color: "#0D5C63" }}>
           {m.name_ta || m.name}
           {m.name_ta && m.name && <span className="text-slate-400 font-normal"> · {m.name}</span>}
@@ -84,6 +87,7 @@ function MemberRow({
             </p>
           );
         })()}
+        </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {m.status !== "active" && (

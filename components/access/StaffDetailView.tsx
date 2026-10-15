@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Avatar from "@/components/ui/Avatar";
 import StatusPill from "@/components/ui/StatusPill";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { Field, FormActions, FormCard, Select, TamilTextInput, TextInput } from "@/components/ui/Field";
@@ -186,6 +187,15 @@ export default function StaffDetailView({ userId }: { userId: string }) {
     <div className="grid lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-4">
         <FormCard title="Account">
+          <div className="flex items-center gap-3 mb-4">
+            <Avatar name={user.name} photo={user.photo} size={56} />
+            <div>
+              <p className="font-bold" style={{ color: "#2c3338" }}>{user.name}</p>
+              <p className="text-xs" style={{ color: "#596065" }}>
+                {isSelf ? "Your own account — change your photo on My Profile." : "Set by this person on their own profile."}
+              </p>
+            </div>
+          </div>
           <dl className="grid sm:grid-cols-2 gap-3 text-sm">
             <div>
               <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Name</dt>

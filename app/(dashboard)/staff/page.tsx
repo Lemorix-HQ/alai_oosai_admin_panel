@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import Avatar from "@/components/ui/Avatar";
 import PageShell from "@/components/ui/PageShell";
 import FilterBar from "@/components/ui/FilterBar";
 import ResourceTable, { type Column } from "@/components/ui/ResourceTable";
@@ -161,20 +162,20 @@ function StaffList() {
       // not to change it, and the page you land on has no controls. Saying so
       // on the row is cheaper than letting someone click through and wonder
       // where the buttons went.
-      render: (u) =>
-        u._id === user?.id ? (
-          <span className="inline-flex items-center gap-1.5">
-            {u.name}
+      render: (u) => (
+        <span className="inline-flex items-center gap-2">
+          <Avatar name={u.name} photo={u.photo} size={26} />
+          {u.name}
+          {u._id === user?.id && (
             <span
               className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
               style={{ backgroundColor: "#f0fdfc", color: "#0D5C63" }}
             >
               You
             </span>
-          </span>
-        ) : (
-          u.name
-        ),
+          )}
+        </span>
+      ),
     },
     { key: "phone", header: "Phone", render: (u) => u.phone ?? "—" },
     // Only a super admin sees more than one parish here, so for anybody else

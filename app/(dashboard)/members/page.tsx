@@ -8,6 +8,7 @@ import Pagination from "@/components/ui/Pagination";
 import CellLink from "@/components/ui/CellLink";
 import ResourceTable, { type Column } from "@/components/ui/ResourceTable";
 import StatusPill from "@/components/ui/StatusPill";
+import Avatar from "@/components/ui/Avatar";
 import { useMembers } from "@/hooks/useFamilies";
 import { useLookup } from "@/hooks/useLookups";
 import {
@@ -50,9 +51,12 @@ function MembersList() {
       key: "name",
       header: "Name",
       render: (m) => (
-        <span>
-          {m.name_ta || m.name}
-          {m.name_ta && m.name && <span className="block text-xs text-slate-400">{m.name}</span>}
+        <span className="inline-flex items-center gap-2">
+          <Avatar name={m.name_ta || m.name} photo={m.photo} size={26} />
+          <span>
+            {m.name_ta || m.name}
+            {m.name_ta && m.name && <span className="block text-xs text-slate-400">{m.name}</span>}
+          </span>
         </span>
       ),
     },

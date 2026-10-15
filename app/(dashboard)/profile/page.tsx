@@ -1,6 +1,7 @@
 import { getParishNameAction } from "@/src/actions/parishes.actions";
 import { getSession } from "@/src/session/session";
 import ProfileForm from "@/components/profile/ProfileForm";
+import Avatar from "@/components/ui/Avatar";
 import StatusPill from "@/components/ui/StatusPill";
 import { displayRole } from "@/src/lib/labels";
 import { userStatusTone } from "@/src/lib/domain-labels";
@@ -12,15 +13,6 @@ export default async function ProfilePage() {
   const parishName = profile?.parish_id
     ? await getParishNameAction(profile.parish_id)
     : null;
-
-  const initials = profile?.name
-    ? profile.name
-        .split(" ")
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "AD";
 
   return (
     <main className="p-6 min-h-[calc(100vh-64px)]" style={{ backgroundColor: "#F5F7FA" }}>
@@ -39,12 +31,7 @@ export default async function ProfilePage() {
             className="w-full md:w-1/3 flex flex-col items-center text-center space-y-4 border-r pr-0 md:pr-12"
             style={{ borderColor: "#f1f5f9" }}
           >
-            <div
-              className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-extrabold shadow-lg"
-              style={{ backgroundColor: "#0d5c63" }}
-            >
-              {initials}
-            </div>
+            <Avatar name={profile?.name ?? "Admin"} photo={profile?.photo} size={96} />
             <div>
               <h3 className="text-xl font-bold" style={{ color: "#2c3338" }}>
                 {profile?.name ?? "Admin"}
@@ -85,6 +72,7 @@ export default async function ProfilePage() {
               email={profile?.email ?? null}
               roleLabel={displayRole(profile)}
               parishName={parishName}
+              initialPhoto={profile?.photo ?? null}
             />
           </div>
         </section>

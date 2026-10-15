@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Field, FormActions, FormCard, TamilTextInput, TextInput } from "@/components/ui/Field";
+import AvatarUpload from "@/components/ui/AvatarUpload";
+import { uploadParishLogoAction } from "@/actions/upload.actions";
 import type { Parish } from "@/src/types";
 import type { ParishPayload } from "@/actions/parishes.actions";
 
@@ -31,6 +33,7 @@ export default function ParishForm({
   const [busy, setBusy] = useState(false);
   const [values, setValues] = useState({
     name: initial?.name ?? "",
+    logo: initial?.logo ?? "",
     code: initial?.code ?? "",
     name_ta: initial?.name_ta ?? "",
     patron_saint: initial?.patron_saint ?? "",
@@ -67,6 +70,7 @@ export default function ParishForm({
     try {
       const payload: ParishPayload = {
         name: values.name.trim(),
+        logo: values.logo.trim() || undefined,
         code: values.code.trim().toUpperCase(),
         name_ta: values.name_ta.trim(),
         patron_saint: values.patron_saint.trim() || undefined,
@@ -102,6 +106,17 @@ export default function ParishForm({
   return (
     <form onSubmit={submit} className="space-y-4 max-w-3xl">
       <FormCard title="Identity">
+        <div className="mb-4">
+          <AvatarUpload
+            name={values.name || values.name_ta || "Parish"}
+            value={values.logo || undefined}
+            size={88}
+            upload={uploadParishLogoAction}
+            cropTitle="Crop parish logo"
+            onChange={(url) => setValues((v) => ({ ...v, logo: url }))}
+            hint="Appears beside the parish name, and on the app's parish screen. Stored once you save this form."
+          />
+        </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Parish name" lang="english" required>
             <TextInput value={values.name} onChange={set("name")} placeholder="Holy Lourdes Church" />
