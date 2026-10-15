@@ -5,6 +5,7 @@ import {
   assignRoleAction,
   createRoleAction,
   createStaffAction,
+  deleteStaffAction,
   deactivateRoleAction,
   getPermissionCatalogueAction,
   getStaffAction,
@@ -122,6 +123,17 @@ export function useAssignRole() {
     onSuccess: (_res, vars) => {
       qc.invalidateQueries({ queryKey: ['staff'] });
       qc.invalidateQueries({ queryKey: ['staff-member', vars.user_id] });
+      qc.invalidateQueries({ queryKey: ['roles'] });
+    },
+  });
+}
+
+export function useDeleteStaff() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteStaffAction(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['staff'] });
       qc.invalidateQueries({ queryKey: ['roles'] });
     },
   });

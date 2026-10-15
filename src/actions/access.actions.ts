@@ -117,6 +117,10 @@ export async function revokeAssignmentAction(assignmentId: string) {
   return deleteRequest<RoleAssignment>(`/staff/assignments/${assignmentId}`);
 }
 
+export async function deleteStaffAction(id: string) {
+  return deleteRequest<{ _id: string }>(`/staff/${id}`);
+}
+
 // ---------------------------------------------------------------------- audit
 
 export interface AuditQuery {

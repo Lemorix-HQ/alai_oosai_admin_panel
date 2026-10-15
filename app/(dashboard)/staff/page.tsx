@@ -8,12 +8,13 @@ import FilterBar from "@/components/ui/FilterBar";
 import ResourceTable, { type Column } from "@/components/ui/ResourceTable";
 import StatusPill from "@/components/ui/StatusPill";
 import SlideOver from "@/components/ui/SlideOver";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { Field, FormActions, Select, TamilTextInput, TextInput } from "@/components/ui/Field";
 import LanguageToggle from "@/components/ui/LanguageToggle";
 import { PermissionGate } from "@/src/session/PermissionGate";
 import { P } from "@/src/session/permissions";
 import { useSession } from "@/src/session/SessionProvider";
-import { useCreateStaff, useRoles, useStaff } from "@/hooks/useAccess";
+import { useCreateStaff, useDeleteStaff, useRoles, useStaff } from "@/hooks/useAccess";
 import { useParishes } from "@/hooks/useParishes";
 import type { ParishWithCounts, Role, RoleAssignment, StaffUser } from "@/src/types";
 import { userStatusTone } from "@/src/lib/domain-labels";
@@ -135,6 +136,8 @@ function NewStaffForm({ onDone }: { onDone: () => void }) {
 
 function StaffList() {
   const params = useSearchParams();
+  const remove = useDeleteStaff();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { user } = useSession();
   const isSuperAdmin = user?.account_type === "super_admin";
 
@@ -227,6 +230,32 @@ function StaffList() {
         />
       ),
     },
+    {
+      key: "actions",
+      header: "",
+      tableOnly: true,
+      render: (u) =>
+        u._id === user?.id ? null : (
+          <PermissionGate permission={P.access.userManage}>
+            <ConfirmDialog
+              trigger={
+                <button className="text-xs font-bold" style={{ color: "#dc2626" }}>
+                  Delete
+                </button>
+              }
+              title={`Delete ${u.name}?`}
+              message="Their roles are revoked and they can no longer sign in. Their name stays on the records they made. The phone number and email become free to use again."
+              confirmLabel="Delete account"
+              requireTyping={u.name}
+              onConfirm={async () => {
+                setDeleteError(null);
+                const res = await remove.mutateAsync(u._id);
+                if (!res.success) setDeleteError(res.message);
+              }}
+            />
+          </PermissionGate>
+        ),
+    },
   ];
 
   return (
@@ -245,6 +274,11 @@ function StaffList() {
             : []
         }
       />
+      {deleteError && (
+        <p className="mb-3 text-sm font-medium" style={{ color: "#dc2626" }}>
+          {deleteError}
+        </p>
+      )}
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading staff…</p>
       ) : (

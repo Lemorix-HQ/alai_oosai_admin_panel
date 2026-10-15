@@ -387,7 +387,8 @@ export type UserStatus =
   | 'inactive'
   | 'banned'
   | 'verification_pending'
-  | 'not_registered';
+  | 'not_registered'
+  | 'deleted';
 
 export interface StaffUser {
   _id: string;
@@ -405,6 +406,8 @@ export interface StaffUser {
   /** Set the moment they accept an invitation or reset. Absent means they cannot sign in yet. */
   password_set_at?: string | null;
   createdAt?: string;
+  /** Set when the account was soft-deleted. The record is kept for the trail. */
+  deleted_at?: string | null;
   assignments: RoleAssignment[];
   /** Attached by the list endpoint, read out of the audit trail — BaseUser
    *  itself records no creator. Null for an account created outside the panel. */

@@ -227,7 +227,16 @@ export default function StaffDetailView({ userId }: { userId: string }) {
               </dd>
             </div>
           </dl>
-          {user.account_type !== "parishioner" && (
+          {user.status === "deleted" && (
+            <p
+              className="mt-3 px-3 py-2.5 rounded-lg text-xs font-medium"
+              style={{ backgroundColor: "#fef2f2", color: "#991b1b" }}
+            >
+              Deleted{user.deleted_at ? ` on ${formatDate(user.deleted_at)}` : ""}. This account cannot sign in and holds no roles.
+              It is kept so the records it made still show who made them.
+            </p>
+          )}
+          {user.account_type !== "parishioner" && user.status !== "deleted" && (
             <AccountStatus
               staff={user}
               sending={invite.isPending}
