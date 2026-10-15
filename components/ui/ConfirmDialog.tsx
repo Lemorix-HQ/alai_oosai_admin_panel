@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 /**
- * Destructive confirmation. `requireTyping` asks the user to type an exact
- * value first — used where the action cannot be undone and the object is easy
+ * Destructive confirmation. `requireTyping` asks the user to type a
+ * value first (case and extra spaces ignored) — used where the action cannot be undone and the object is easy
  * to confuse with a similar one, such as closing the wrong family.
  */
 export default function ConfirmDialog({
@@ -28,7 +28,11 @@ export default function ConfirmDialog({
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const blocked = requireTyping ? typed.trim() !== requireTyping : false;
+  // The prompt is a guard against the wrong object, not a spelling test: ignore
+  // case and runs of spaces, so what the reader sees is what satisfies it.
+  const same = (a: string, b: string) =>
+    a.trim().replace(/\s+/g, " ").toLowerCase() === b.trim().replace(/\s+/g, " ").toLowerCase();
+  const blocked = requireTyping ? !same(typed, requireTyping) : false;
 
   async function run() {
     setBusy(true);
@@ -55,7 +59,7 @@ export default function ConfirmDialog({
             {requireTyping && (
               <div className="mb-4">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Type <span className="font-mono">{requireTyping}</span> to confirm
+                  Type <span className="font-mono normal-case">{requireTyping}</span> to confirm
                 </label>
                 <input
                   value={typed}
