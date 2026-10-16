@@ -151,10 +151,24 @@ export function emptyMember(overrides: Partial<MemberValues> = {}): MemberValues
   };
 }
 
+const hasTamil = (s: string) => /[\u0B80-\u0BFF]/.test(s);
+
+/**
+ * The seeded census holds the Tamil name in `name` and null in `name_ta`, so
+ * the script decides which box a name opens in. Saving is unaffected:
+ * `valuesToPayload` falls back to the Tamil name when the English box is empty.
+ */
+function namesOf(m: Member): { name: string; name_ta: string } {
+  const stored = m.name ?? "";
+  if (hasTamil(stored)) return { name: "", name_ta: m.name_ta ?? stored };
+  return { name: stored, name_ta: m.name_ta ?? "" };
+}
+
 export function memberToValues(m: Member): MemberValues {
+  const { name, name_ta } = namesOf(m);
   return emptyMember({
-    name: m.name ?? "",
-    name_ta: m.name_ta ?? "",
+    name,
+    name_ta,
     photo: m.photo ?? undefined,
     baptismal_name: m.baptismal_name ?? "",
     initial: m.initial ?? "",
