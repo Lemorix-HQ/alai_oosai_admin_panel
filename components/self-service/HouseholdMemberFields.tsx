@@ -7,6 +7,13 @@ import type {
   HouseholdCollegeInput, HouseholdMember, HouseholdMemberChanges,
   HouseholdSchoolingInput, HouseholdWorkInput, SubmitSittingPayload,
 } from "@/src/types";
+import JobSeekingFields, {
+  emptyJobSeekingDraft,
+  jobSeekingCore,
+  jobSeekingDraftFrom,
+  jobSeekingPayload,
+  type JobSeekingDraft,
+} from "@/components/shared/JobSeekingFields";
 
 /**
  * The fields of a person, as the household itself fills them in.
@@ -150,6 +157,7 @@ export interface MemberDraft {
   schooling: ActivityDraft;
   college: ActivityDraft;
   work: ActivityDraft;
+  job_seeking: JobSeekingDraft;
 }
 
 export function emptyDraft(): MemberDraft {
@@ -158,6 +166,7 @@ export function emptyDraft(): MemberDraft {
     date_of_birth: "", marital_status: "unknown", phone: "", email: "",
     blood_group: "", shares_household_phone: false,
     schooling: emptyActivity(), college: emptyActivity(), work: emptyActivity(),
+    job_seeking: emptyJobSeekingDraft(),
   };
 }
 
@@ -254,6 +263,7 @@ export function draftFrom(m: HouseholdMember): MemberDraft {
     schooling: schoolingDraft(m.schooling),
     college: collegeDraft(m.college),
     work: workDraft(m.work),
+    job_seeking: jobSeekingDraftFrom(m.job_seeking),
   };
 }
 
@@ -342,6 +352,10 @@ export function changesBetween(before: MemberDraft, after: MemberDraft): Househo
     out[k] = activityPayload(k, after[k], thisYear) as never;
   }
 
+  if (jobSeekingCore(before.job_seeking) !== jobSeekingCore(after.job_seeking)) {
+    out.job_seeking = jobSeekingPayload(after.job_seeking);
+  }
+
   return out;
 }
 
@@ -370,6 +384,8 @@ export function draftToNewMember(d: MemberDraft): NewMemberPayload {
     const block = activityPayload(k, d[k], thisYear);
     if (block) out[k] = block as never;
   }
+  const jobSeeking = jobSeekingPayload(d.job_seeking);
+  if (jobSeeking) out.job_seeking = jobSeeking;
   return out;
 }
 
@@ -527,6 +543,14 @@ export default function HouseholdMemberFields({
           onChange={(next) => set({ [k]: next } as Partial<MemberDraft>)}
         />
       ))}
+
+      <div className="border-t pt-3" style={{ borderColor: "#e2e8f0" }}>
+        <JobSeekingFields
+          value={v.job_seeking}
+          onChange={(job_seeking) => set({ job_seeking })}
+          audience="household"
+        />
+      </div>
     </div>
   );
 }

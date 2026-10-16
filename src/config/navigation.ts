@@ -36,8 +36,15 @@ export const NAVIGATION: NavSection[] = [
       { href: '/members', icon: 'groups', label: 'Members', anyOf: [P.member.read] },
       { href: '/visits', icon: 'directions_walk', label: 'Visits', anyOf: [P.visit.read] },
       { href: '/sodalities', icon: 'diversity_3', label: 'Sodalities', anyOf: [P.sodality.read, P.sodality.manage] },
-      { href: '/submissions', icon: 'drafts', label: 'From families', anyOf: [P.request.verify] },
       { href: '/requests', icon: 'how_to_reg', label: 'Change Requests', anyOf: [P.request.read] },
+    ],
+  },
+  {
+    title: 'Family Self-Service',
+    items: [
+      { href: '/code-issue-management', icon: 'key', label: 'Code Issue Management', anyOf: [P.family.accessCodeManage] },
+      { href: '/qr-code-management', icon: 'qr_code_2', label: 'QR Code & Link Management', anyOf: [P.family.accessCodeManage] },
+      { href: '/submissions', icon: 'drafts', label: 'From families', anyOf: [P.request.verify] },
     ],
   },
   {
@@ -53,6 +60,7 @@ export const NAVIGATION: NavSection[] = [
     items: [
       { href: '/staff', icon: 'badge', label: 'Staff', anyOf: [P.access.userManage, P.access.assignRole] },
       { href: '/roles', icon: 'shield_person', label: 'Roles', anyOf: [P.access.roleManage] },
+      { href: '/master-data', icon: 'inventory_2', label: 'Master Data', anyOf: [P.masterData.manage] },
       { href: '/parish-settings', icon: 'tune', label: 'Parish Settings', anyOf: [P.parish.settingsManage] },
     ],
   },

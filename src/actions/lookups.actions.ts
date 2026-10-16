@@ -1,6 +1,6 @@
 'use server';
 
-import { getRequest, postRequest } from '@/services/api';
+import { deleteRequest, getRequest, patchRequest, postRequest } from '@/services/api';
 import type { College, Occupation, Place, School } from '@/src/types';
 
 export type LookupKind = 'school' | 'college' | 'occupation' | 'place';
@@ -72,4 +72,32 @@ export async function createLookupAction(
     );
   }
   return postRequest<Record<string, unknown>, LookupRow>(PATH[kind], payload);
+}
+
+/**
+ * The Master Data screen's own listing — staff only, and the one caller
+ * allowed to ask for `status=all` so a retired row stays visible to reactivate.
+ */
+export async function listMasterDataAction(
+  kind: LookupKind,
+  opts?: { q?: string; status?: 'active' | 'inactive' | 'all' },
+) {
+  return getRequest<{ q?: string; status?: string }, LookupRow[]>(PATH[kind], {
+    ...(opts?.q ? { q: opts.q } : {}),
+    status: opts?.status ?? 'all',
+  });
+}
+
+/** Rename, reclassify or retire a row. Staff only — `master_data.manage`. */
+export async function updateLookupAction(
+  kind: LookupKind,
+  id: string,
+  payload: Record<string, unknown>,
+) {
+  return patchRequest<Record<string, unknown>, LookupRow>(`${PATH[kind]}/${id}`, payload);
+}
+
+/** Soft delete — sets the row inactive. It stays resolvable on existing members. */
+export async function deleteLookupAction(kind: LookupKind, id: string) {
+  return deleteRequest<LookupRow>(`${PATH[kind]}/${id}`);
 }

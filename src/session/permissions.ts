@@ -65,4 +65,5 @@ export const P = {
     manage: 'sodality.manage',
     memberManage: 'sodality.member.manage',
   },
+  masterData: { manage: 'master_data.manage' },
 } as const;

@@ -20,6 +20,12 @@ import {
   type MemberWork,
 } from "@/src/types";
 import type { MemberPayload } from "@/actions/families.actions";
+import JobSeekingFields, {
+  emptyJobSeekingDraft,
+  jobSeekingDraftFrom,
+  jobSeekingPayload,
+  type JobSeekingDraft,
+} from "@/components/shared/JobSeekingFields";
 
 /**
  * One activity block as the form holds it.
@@ -125,6 +131,7 @@ export interface MemberValues {
   schooling: ActivityValues;
   college: ActivityValues;
   work: ActivityValues;
+  job_seeking: JobSeekingDraft;
   phone: string;
   blood_group: string;
   notes: string;
@@ -137,6 +144,7 @@ export function emptyMember(overrides: Partial<MemberValues> = {}): MemberValues
     gender: "male", relationship_to_head: "magan",
     date_of_birth: "", dob_is_estimated: false, marital_status: "unknown",
     schooling: emptyActivity(), college: emptyActivity(), work: emptyActivity(),
+    job_seeking: emptyJobSeekingDraft(),
     phone: "", blood_group: "", notes: "",
     status: "active",
     ...overrides,
@@ -158,6 +166,7 @@ export function memberToValues(m: Member): MemberValues {
     schooling: schoolingToValues(m.schooling),
     college: collegeToValues(m.college),
     work: workToValues(m.work),
+    job_seeking: jobSeekingDraftFrom(m.job_seeking),
     phone: m.phone ?? "",
     blood_group: m.blood_group ?? "",
     notes: m.notes ?? "",
@@ -205,6 +214,7 @@ export function valuesToPayload(v: MemberValues): MemberPayload & { status?: str
           as_of_year: yearOf(v.work),
         }
       : null,
+    job_seeking: jobSeekingPayload(v.job_seeking),
     phone: t(v.phone),
     photo: v.photo,
     blood_group: t(v.blood_group),
@@ -513,6 +523,14 @@ export default function MemberFields({
           </div>
         );
       })}
+
+      <div className="border-t pt-3" style={{ borderColor: "#e2e8f0" }}>
+        <JobSeekingFields
+          value={v.job_seeking}
+          onChange={(job_seeking) => set({ job_seeking })}
+          audience="staff"
+        />
+      </div>
 
       <Field label="Notes" lang="tamil">
         <TamilTextArea rows={2} value={v.notes} onChange={(e) => set({ notes: e.target.value })} />

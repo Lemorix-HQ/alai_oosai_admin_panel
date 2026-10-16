@@ -4,6 +4,7 @@ import { useState } from "react";
 import StatusPill from "@/components/ui/StatusPill";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { FormCard } from "@/components/ui/Field";
+import RevealedAccessCode from "./RevealedAccessCode";
 import { PermissionGate } from "@/src/session/PermissionGate";
 import { P } from "@/src/session/permissions";
 import {
@@ -45,7 +46,6 @@ export default function AccessCodeCard({
   // reveal-once secret must not be readable by another component or come back
   // when this card remounts.
   const [revealed, setRevealed] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const status = data?.data;
@@ -54,7 +54,6 @@ export default function AccessCodeCard({
 
   async function doIssue() {
     setError(null);
-    setCopied(false);
     const res = await issue.mutateAsync();
     if (!res.success || !res.data) {
       setError(res.message);
@@ -63,61 +62,14 @@ export default function AccessCodeCard({
     setRevealed(res.data.code);
   }
 
-  async function copy() {
-    if (!revealed) return;
-    try {
-      await navigator.clipboard.writeText(revealed);
-      setCopied(true);
-    } catch {
-      // An insecure origin or a browser that refuses the permission. The code
-      // is on screen either way, which is what actually matters.
-      setError("Could not copy — write the code down from the screen.");
-    }
-  }
-
   return (
     <FormCard title="Self-service access code">
       {revealed ? (
-        <div
-          className="rounded-lg p-4 space-y-3"
-          style={{ backgroundColor: "#f0fdfc", border: "1px solid #99d6d1" }}
-        >
-          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#0D5C63" }}>
-            Write this down now
-          </p>
-          <p
-            className="text-2xl font-bold tracking-[0.2em] font-mono select-all break-all"
-            style={{ color: "#0D5C63" }}
-          >
-            {revealed}
-          </p>
-          <p className="text-xs text-slate-600">
-            This is the only time the code is shown. It is not stored anywhere it can be read
-            back — if it is lost, issue a new one. Give it to the family together with their
-            family code, <strong>{familyCode}</strong>.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={copy}
-              className="px-3 py-2 rounded-lg text-xs font-bold"
-              style={{ backgroundColor: "#F59E0B", color: "#0D5C63" }}
-            >
-              {copied ? "Copied" : "Copy code"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setRevealed(null);
-                setCopied(false);
-              }}
-              className="px-3 py-2 rounded-lg border text-xs font-bold"
-              style={{ borderColor: "#e2e8f0", color: "#596065" }}
-            >
-              I have written it down
-            </button>
-          </div>
-        </div>
+        <RevealedAccessCode
+          code={revealed}
+          familyCode={familyCode}
+          onDone={() => setRevealed(null)}
+        />
       ) : (
         <>
           <div className="flex items-center gap-2">

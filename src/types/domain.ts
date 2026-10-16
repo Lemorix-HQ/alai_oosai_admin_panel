@@ -184,6 +184,35 @@ export interface MemberWork {
   as_of_year: number;
 }
 
+/**
+ * 10th or 12th standard inside `MemberJobSeeking`. Every field is optional,
+ * unlike `MemberSchooling` above — a household may know only that someone
+ * is job-seeking and nothing about their qualifications yet.
+ */
+export interface MemberJobSeekingSchool {
+  school_id?: Ref<Pick<School, '_id' | 'name' | 'name_ta'>> | null;
+  percentage?: number;
+  place_id?: PlaceRef;
+  as_of_year?: number;
+}
+export interface MemberJobSeekingCollege {
+  college_id?: Ref<Pick<College, '_id' | 'name' | 'name_ta'>> | null;
+  degree?: string;
+  percentage?: number;
+  place_id?: PlaceRef;
+  as_of_year?: number;
+}
+/**
+ * Separate from `schooling`/`college` above: this needs 10th AND 12th at
+ * once, so it is its own block rather than a reuse of the singular ones.
+ */
+export interface MemberJobSeeking {
+  is_seeking_job: boolean;
+  tenth?: MemberJobSeekingSchool | null;
+  twelfth?: MemberJobSeekingSchool | null;
+  college?: MemberJobSeekingCollege | null;
+}
+
 // ------------------------------------------------------------------ household
 
 export const PASTORAL_FLAGS = [
@@ -219,6 +248,7 @@ export interface Member {
   schooling?: MemberSchooling | null;
   college?: MemberCollege | null;
   work?: MemberWork | null;
+  job_seeking?: MemberJobSeeking | null;
   phone?: string;
   email?: string;
   photo?: string;
@@ -623,6 +653,21 @@ export interface RevokedAccessCode {
   revoked: boolean;
 }
 
+/**
+ * A household's "I don't have a code yet" on `/family-update`, as staff see
+ * it on the Code Issue Management screen. `family_id` is what
+ * `issueAccessCodeAction` is called with — this row is otherwise read-only.
+ * `phone` lives only on this row — the backend clears it the moment the
+ * request is issued or dismissed, so it is `null` on anything not pending.
+ */
+export interface AccessCodeRequest {
+  _id: string;
+  family_id: string | null;
+  family_code: string | null;
+  phone: string | null;
+  requested_at: string | null;
+}
+
 // ----------------------------------------- the household's self-service form
 
 /** The public parish picker: id and name only, before anyone has a session. */
@@ -630,6 +675,35 @@ export interface SelfServiceParish {
   id: string;
   name: string;
   name_ta: string | null;
+}
+
+/**
+ * One parish, resolved from the `?parish=<code>` a QR code or shared link
+ * carries — what `/family-update` now shows read-only instead of a dropdown.
+ */
+export interface ResolvedParish {
+  id: string;
+  code: string;
+  name: string;
+  name_ta: string | null;
+  logo: string | null;
+}
+
+/** One person a household can contact about a security code. */
+export interface StaffContact {
+  name: string;
+  phone: string | null;
+}
+
+/**
+ * Who `/family-update` tells a household to contact for a code — the priest,
+ * any assistant priests, and faculty holding `family.access_code.manage`.
+ * Resolved from the same `?parish=<code>` the form itself reads.
+ */
+export interface ParishStaffContacts {
+  administrator: StaffContact | null;
+  assistants: StaffContact[];
+  faculty: StaffContact[];
 }
 
 /**
@@ -663,6 +737,7 @@ export interface HouseholdMember {
   schooling: MemberSchooling | null;
   college: MemberCollege | null;
   work: MemberWork | null;
+  job_seeking: MemberJobSeeking | null;
 }
 
 export interface HouseholdSnapshot {
@@ -727,6 +802,26 @@ export interface HouseholdWorkInput {
   place_id?: string;
   as_of_year: number;
 }
+/** Every field optional, unlike the inputs above — a household may know only that someone is job-seeking. */
+export interface HouseholdJobSeekingSchoolInput {
+  school_id?: string;
+  percentage?: number;
+  place_id?: string;
+  as_of_year?: number;
+}
+export interface HouseholdJobSeekingCollegeInput {
+  college_id?: string;
+  degree?: string;
+  percentage?: number;
+  place_id?: string;
+  as_of_year?: number;
+}
+export interface HouseholdJobSeekingInput {
+  is_seeking_job: boolean;
+  tenth?: HouseholdJobSeekingSchoolInput | null;
+  twelfth?: HouseholdJobSeekingSchoolInput | null;
+  college?: HouseholdJobSeekingCollegeInput | null;
+}
 
 /** What the form sends back. Mirrors the backend's SubmitSittingDto. */
 export interface HouseholdMemberChanges {
@@ -749,6 +844,7 @@ export interface HouseholdMemberChanges {
   schooling?: HouseholdSchoolingInput | null;
   college?: HouseholdCollegeInput | null;
   work?: HouseholdWorkInput | null;
+  job_seeking?: HouseholdJobSeekingInput | null;
 }
 
 export interface SubmitSittingPayload {

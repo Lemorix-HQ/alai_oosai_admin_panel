@@ -2,8 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  dismissAccessCodeRequestAction,
   getAccessCodeStatusAction,
   issueAccessCodeAction,
+  listAccessCodeRequestsAction,
   revokeAccessCodeAction,
 } from '@/actions/self-service.actions';
 
@@ -32,6 +34,10 @@ export function useIssueAccessCode(familyId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['access-code', familyId] });
       qc.invalidateQueries({ queryKey: ['audit'] });
+      // Issuing clears any pending request for this family too — the backend
+      // does it inside the same call, so the Code Issue Management list
+      // needs refreshing regardless of which screen issued the code.
+      qc.invalidateQueries({ queryKey: ['access-code-requests'] });
     },
   });
 }
@@ -44,5 +50,24 @@ export function useRevokeAccessCode(familyId: string) {
       qc.invalidateQueries({ queryKey: ['access-code', familyId] });
       qc.invalidateQueries({ queryKey: ['audit'] });
     },
+  });
+}
+
+/** The Code Issue Management screen's list. */
+export function useAccessCodeRequests() {
+  return useQuery({
+    queryKey: ['access-code-requests'],
+    queryFn: () => listAccessCodeRequestsAction(),
+    // Short: a parishioner's request and a colleague issuing or dismissing
+    // one are both things another tab can do at the same time.
+    staleTime: 15 * 1000,
+  });
+}
+
+export function useDismissAccessCodeRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => dismissAccessCodeRequestAction(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['access-code-requests'] }),
   });
 }
