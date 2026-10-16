@@ -29,6 +29,7 @@ function MembersList() {
     occupation_id: params.get("occupation_id") ?? undefined,
     place_id: params.get("place_id") ?? undefined,
     activity_year: params.get("activity_year") ?? undefined,
+    is_seeking_job: params.get("is_seeking_job") ?? undefined,
     page: params.get("page") ?? "1",
   });
 
@@ -119,17 +120,24 @@ function MembersList() {
             m.work.place_id && typeof m.work.place_id !== "string" ? m.work.place_id.name : null;
           parts.push([m.work.occupation_id.name, place].filter(Boolean).join(" · "));
         }
-        if (parts.length === 0) return "—";
         const newest = Math.max(
           m.schooling?.as_of_year ?? 0,
           m.college?.as_of_year ?? 0,
           m.work?.as_of_year ?? 0,
         );
         return (
-          // Muted once the newest record is behind the current year, so a
-          // stale row looks stale instead of looking like today's truth.
-          <span className={newest < year ? "text-slate-400" : ""}>
-            {parts.join(" / ")} <span className="text-xs text-slate-400">· {newest}</span>
+          <span>
+            {parts.length > 0 && (
+              // Muted once the newest record is behind the current year, so a
+              // stale row looks stale instead of looking like today's truth.
+              <span className={newest < year ? "text-slate-400" : ""}>
+                {parts.join(" / ")} <span className="text-xs text-slate-400">· {newest}</span>
+              </span>
+            )}
+            {m.job_seeking?.is_seeking_job && (
+              <StatusPill label="Job seeking" tone="warning" />
+            )}
+            {parts.length === 0 && !m.job_seeking?.is_seeking_job && "—"}
           </span>
         );
       },
@@ -160,6 +168,14 @@ function MembersList() {
           { key: "college_id", label: "College", options: opts(colleges) },
           { key: "occupation_id", label: "Occupation", options: opts(occupations) },
           { key: "place_id", label: "Place", options: opts(places) },
+          {
+            key: "is_seeking_job",
+            label: "Job seeking",
+            options: [
+              { value: "true", label: "Waiting for a job" },
+              { value: "false", label: "Not waiting" },
+            ],
+          },
         ]}
       />
       {isLoading ? (

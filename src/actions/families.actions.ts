@@ -30,6 +30,7 @@ export interface FamilyQuery {
   occupation_id?: string;
   place_id?: string;
   activity_year?: string;
+  is_seeking_job?: string;
 }
 
 export async function listFamiliesAction(query: FamilyQuery = {}) {
@@ -136,6 +137,7 @@ export interface MemberPayload {
   schooling?: MemberActivityPayload | null;
   college?: MemberActivityPayload | null;
   work?: MemberActivityPayload | null;
+  job_seeking?: MemberJobSeekingPayload | null;
 }
 
 /** The union of the three blocks' writable fields; each sends its own subset. */
@@ -148,6 +150,14 @@ export interface MemberActivityPayload {
   degree?: string;
   place_id?: string;
   as_of_year: number;
+}
+
+/** Every field optional, unlike `MemberActivityPayload` above — see `JobSeekingFields`. */
+export interface MemberJobSeekingPayload {
+  is_seeking_job: boolean;
+  tenth?: { school_id?: string; percentage?: number; place_id?: string } | null;
+  twelfth?: { school_id?: string; percentage?: number; place_id?: string } | null;
+  college?: { college_id?: string; degree?: string; percentage?: number; place_id?: string } | null;
 }
 
 export async function addMemberAction(familyId: string, payload: MemberPayload) {

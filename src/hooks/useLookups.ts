@@ -29,7 +29,14 @@ export function useLookup(
     // not serve both.
     queryKey: ['lookup', kind, audience, q ?? '', limit ?? 0],
     queryFn: () => listLookupAction(kind, q, limit, audience),
-    staleTime: LOOKUP_STALE,
+    // Long for staff, who reopen the same combobox dozens of times a day on
+    // a list that barely changes. A household opens it once, on its own
+    // sitting token — `invalidateQueries` in useCreateLookup only reaches
+    // the browser tab that just wrote a row, so a school staff add in
+    // answer to a call never reaches an already-open household tab on its
+    // own. `LookupCombobox` covers that gap by refetching this query itself
+    // whenever the household reopens the dropdown.
+    staleTime: audience === 'household' ? 0 : LOOKUP_STALE,
   });
 }
 

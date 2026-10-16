@@ -72,7 +72,7 @@ export default function LookupCombobox({
   // Trimmed for the same reason the filter bar trims: `name_ta` is matched on
   // an unanchored regex, and committing a transliterated word leaves a
   // trailing space that then matches nothing.
-  const { data } = useLookup(kind, term.trim() || undefined, undefined, audience);
+  const { data, refetch } = useLookup(kind, term.trim() || undefined, undefined, audience);
   const create = useCreateLookup(kind, audience);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,7 +117,15 @@ export default function LookupCombobox({
           setTerm(e.target.value);
           setOpen(true);
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          setOpen(true);
+          // A household's own sitting is a one-time visit — the row it is
+          // looking for may have been added by staff, in a different
+          // session entirely, seconds ago. staleTime: 0 marks this query
+          // stale the moment it mounts; this is what actually acts on
+          // that, each time the dropdown is reopened.
+          if (audience === "household") void refetch();
+        }}
         // Delayed so a click on an option lands before the list unmounts.
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder={placeholder}

@@ -20,6 +20,12 @@ import {
   type MemberWork,
 } from "@/src/types";
 import type { MemberPayload } from "@/actions/families.actions";
+import JobSeekingFields, {
+  emptyJobSeekingDraft,
+  jobSeekingDraftFrom,
+  jobSeekingPayload,
+  type JobSeekingDraft,
+} from "@/components/shared/JobSeekingFields";
 
 /**
  * One activity block as the form holds it.
@@ -125,6 +131,7 @@ export interface MemberValues {
   schooling: ActivityValues;
   college: ActivityValues;
   work: ActivityValues;
+  job_seeking: JobSeekingDraft;
   phone: string;
   blood_group: string;
   notes: string;
@@ -137,16 +144,31 @@ export function emptyMember(overrides: Partial<MemberValues> = {}): MemberValues
     gender: "male", relationship_to_head: "magan",
     date_of_birth: "", dob_is_estimated: false, marital_status: "unknown",
     schooling: emptyActivity(), college: emptyActivity(), work: emptyActivity(),
+    job_seeking: emptyJobSeekingDraft(),
     phone: "", blood_group: "", notes: "",
     status: "active",
     ...overrides,
   };
 }
 
+const hasTamil = (s: string) => /[\u0B80-\u0BFF]/.test(s);
+
+/**
+ * The seeded census holds the Tamil name in `name` and null in `name_ta`, so
+ * the script decides which box a name opens in. Saving is unaffected:
+ * `valuesToPayload` falls back to the Tamil name when the English box is empty.
+ */
+function namesOf(m: Member): { name: string; name_ta: string } {
+  const stored = m.name ?? "";
+  if (hasTamil(stored)) return { name: "", name_ta: m.name_ta ?? stored };
+  return { name: stored, name_ta: m.name_ta ?? "" };
+}
+
 export function memberToValues(m: Member): MemberValues {
+  const { name, name_ta } = namesOf(m);
   return emptyMember({
-    name: m.name ?? "",
-    name_ta: m.name_ta ?? "",
+    name,
+    name_ta,
     photo: m.photo ?? undefined,
     baptismal_name: m.baptismal_name ?? "",
     initial: m.initial ?? "",
@@ -158,6 +180,7 @@ export function memberToValues(m: Member): MemberValues {
     schooling: schoolingToValues(m.schooling),
     college: collegeToValues(m.college),
     work: workToValues(m.work),
+    job_seeking: jobSeekingDraftFrom(m.job_seeking),
     phone: m.phone ?? "",
     blood_group: m.blood_group ?? "",
     notes: m.notes ?? "",
@@ -205,6 +228,7 @@ export function valuesToPayload(v: MemberValues): MemberPayload & { status?: str
           as_of_year: yearOf(v.work),
         }
       : null,
+    job_seeking: jobSeekingPayload(v.job_seeking),
     phone: t(v.phone),
     photo: v.photo,
     blood_group: t(v.blood_group),
@@ -513,6 +537,14 @@ export default function MemberFields({
           </div>
         );
       })}
+
+      <div className="border-t pt-3" style={{ borderColor: "#e2e8f0" }}>
+        <JobSeekingFields
+          value={v.job_seeking}
+          onChange={(job_seeking) => set({ job_seeking })}
+          audience="staff"
+        />
+      </div>
 
       <Field label="Notes" lang="tamil">
         <TamilTextArea rows={2} value={v.notes} onChange={(e) => set({ notes: e.target.value })} />

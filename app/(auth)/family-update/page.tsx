@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import AuthCard from "@/components/access/AuthCard";
 import { Field, Select, TextArea, TextInput } from "@/components/ui/Field";
 import HouseholdMemberFields, {
@@ -16,13 +17,19 @@ import HouseholdMemberFields, {
 } from "@/components/self-service/HouseholdMemberFields";
 import {
   closeSittingAction,
-  listSelfServiceParishesAction,
+  getParishStaffContactsAction,
   openSittingAction,
+  requestAccessCodeAction,
+  resolveParishAction,
   submitSittingAction,
 } from "@/actions/self-service.actions";
 import type {
-  HouseholdMember, OpenedSitting, SelfServiceParish, SubmitSittingPayload, SubmittedSitting,
+  HouseholdMember, OpenedSitting, ParishStaffContacts, ResolvedParish, SubmitSittingPayload,
+  SubmittedSitting,
 } from "@/src/types";
+
+/** Same shape the backend validates phone numbers against (register-send-otp.dto.ts). */
+const isValidPhone = (v: string) => /^[0-9]{10}$/.test(v.trim());
 
 /**
  * The household's own form — the one page in this panel a parishioner opens.
@@ -54,6 +61,17 @@ const yearsOld = (iso: string): number | null => {
 type Stage = "identify" | "edit" | "done";
 
 export default function FamilyUpdatePage() {
+  // `Identify` reads `useSearchParams()` to resolve the parish from the URL
+  // a QR code or shared link carries — Next.js requires a Suspense boundary
+  // around that for prerendering, even on a page that is entirely client.
+  return (
+    <Suspense fallback={null}>
+      <FamilyUpdateFlow />
+    </Suspense>
+  );
+}
+
+function FamilyUpdateFlow() {
   const [stage, setStage] = useState<Stage>("identify");
   const [snapshot, setSnapshot] = useState<OpenedSitting | null>(null);
   const [result, setResult] = useState<SubmittedSitting | null>(null);
@@ -88,28 +106,117 @@ export default function FamilyUpdatePage() {
 // --------------------------------------------------------------- screen one
 
 function Identify({ onOpened }: { onOpened: (data: OpenedSitting) => void }) {
-  const [parishes, setParishes] = useState<SelfServiceParish[]>([]);
-  const [parishId, setParishId] = useState("");
+  const searchParams = useSearchParams();
+  const parishCode = searchParams.get("parish");
+
+  const [parish, setParish] = useState<ResolvedParish | null>(null);
+  const [resolutionFailed, setResolutionFailed] = useState(false);
+  // Who to contact for a code — best-effort. A failure here should never
+  // block the form itself, so it is kept separate from resolutionFailed.
+  const [contacts, setContacts] = useState<ParishStaffContacts | null>(null);
+
+  useEffect(() => {
+    if (!parishCode) return;
+    void (async () => {
+      const res = await resolveParishAction(parishCode);
+      if (!res.success || !res.data) {
+        setResolutionFailed(true);
+        return;
+      }
+      setParish(res.data);
+    })();
+    void (async () => {
+      const res = await getParishStaffContactsAction(parishCode);
+      if (res.success && res.data) setContacts(res.data);
+    })();
+  }, [parishCode]);
+
+  if (!parishCode || resolutionFailed) {
+    return (
+      <AuthCard title="இணைப்பு தவறு" subtitle="This link is missing its parish">
+        <p className="text-sm" style={{ color: "#596065" }}>
+          அன்பிய தலைவரிடம் சரியான இணைப்பைக் கேளுங்கள், அல்லது QR குறியீட்டை மீண்டும் ஸ்கேன்
+          செய்யுங்கள் — ask your Anbiyam head for the right link, or scan the QR code again.
+        </p>
+      </AuthCard>
+    );
+  }
+
+  if (!parish) {
+    return (
+      <AuthCard title="குடும்ப விவரம்" subtitle="Your family details">
+        <p className="text-sm" style={{ color: "#596065" }}>பார்க்கிறது… (checking)</p>
+      </AuthCard>
+    );
+  }
+
+  return <IdentifyForm parish={parish} contacts={contacts} onOpened={onOpened} />;
+}
+
+function IdentifyForm({
+  parish,
+  contacts,
+  onOpened,
+}: {
+  parish: ResolvedParish;
+  contacts: ParishStaffContacts | null;
+  onOpened: (data: OpenedSitting) => void;
+}) {
   const [familyCode, setFamilyCode] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void (async () => {
-      const res = await listSelfServiceParishesAction();
-      const rows = res.data ?? [];
-      setParishes(rows);
-      if (rows.length === 1) setParishId(rows[0].id);
-    })();
-  }, []);
+  const [requesting, setRequesting] = useState(false);
+  const [requestMessage, setRequestMessage] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<string | null>(null);
+
+  // Where the parish can reach the household to arrange handing the code
+  // over. Sent with the request and stored on that one AccessCodeRequest
+  // row — the backend clears it the moment the row is fulfilled or
+  // dismissed, so it never outlives the request it was given for. Left in
+  // the field after a successful request (not cleared) so a household that
+  // has to ask again — the code never showed up, say — does not have to
+  // retype it.
+  const [verificationPhone, setVerificationPhone] = useState("");
+
+  async function requestCode() {
+    setRequestError(null);
+    setRequestMessage(null);
+    if (!familyCode.trim()) {
+      setRequestError("குடும்ப எண்ணை எழுதுங்கள் — write your family code first.");
+      return;
+    }
+    if (!isValidPhone(verificationPhone)) {
+      setRequestError(
+        "தொடர்பு எண்ணை 10 இலக்கங்களில் எழுதுங்கள் — write a 10-digit phone number the parish can reach you on.",
+      );
+      return;
+    }
+    setRequesting(true);
+    const res = await requestAccessCodeAction({
+      parish_code: parish.code,
+      family_code: familyCode.trim(),
+      phone: verificationPhone.trim(),
+    });
+    setRequesting(false);
+    if (!res.success) {
+      setRequestError(res.message);
+      return;
+    }
+    setRequestMessage(
+      "குறியீடு கோரப்பட்டது — பங்குத் தந்தை அல்லது நிர்வாகியைத் தொடர்பு கொள்ளுங்கள். " +
+        "Code requested — the parish now has your number and will reach out, or you can contact " +
+        "the Priest or admin below yourself.",
+    );
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setBusy(true);
     const res = await openSittingAction({
-      parish_id: parishId,
+      parish_id: parish.id,
       family_code: familyCode.trim(),
       access_code: accessCode.trim(),
     });
@@ -127,20 +234,21 @@ function Identify({ onOpened }: { onOpened: (data: OpenedSitting) => void }) {
       subtitle="Your family details — fill them in before the parish visits"
     >
       <form onSubmit={submit} className="touch-form space-y-4">
-        <Field label="பங்கு (Parish)" required>
-          {/* Tamil for every row, which is a data rule rather than a display
-              one: `name_ta` is required on a parish (CreateParishDto, and the
-              Tamil field on the parish form) precisely so this list cannot
-              come back half in one script and half in the other. The fallback
-              below is for a parish seeded before that rule — better a name in
-              the wrong script than a parish nobody can pick. */}
-          <Select value={parishId} onChange={(e) => setParishId(e.target.value)} required>
-            <option value="">— தேர்ந்தெடுங்கள் (choose) —</option>
-            {parishes.map((p) => (
-              <option key={p.id} value={p.id}>{p.name_ta || p.name}</option>
-            ))}
-          </Select>
-        </Field>
+        {/* Read-only: the parish comes from the link or QR code that opened
+            this page, never a dropdown the household can get wrong. */}
+        <div className="flex items-center gap-3 rounded-lg border p-3" style={{ borderColor: "#dce3e9" }}>
+          {parish.logo && (
+            // eslint-disable-next-line @next/next/no-img-element -- a parish logo URL, not a local/optimizable asset
+            <img src={parish.logo} alt="" className="h-10 w-10 rounded object-contain" />
+          )}
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#0D5C63" }}>
+              பங்கு (Parish)
+            </p>
+            <p className="font-bold" style={{ color: "#0D5C63" }}>{parish.name_ta || parish.name}</p>
+            {parish.name_ta && <p className="text-xs text-slate-500">{parish.name}</p>}
+          </div>
+        </div>
 
         <Field
           label="குடும்ப எண் (Family code)"
@@ -149,7 +257,11 @@ function Identify({ onOpened }: { onOpened: (data: OpenedSitting) => void }) {
         >
           <TextInput
             value={familyCode}
-            onChange={(e) => setFamilyCode(e.target.value)}
+            onChange={(e) => {
+              setFamilyCode(e.target.value);
+              setRequestMessage(null);
+              setRequestError(null);
+            }}
             placeholder="ASS-17"
             autoCapitalize="characters"
             autoCorrect="off"
@@ -158,10 +270,52 @@ function Identify({ onOpened }: { onOpened: (data: OpenedSitting) => void }) {
           />
         </Field>
 
+        <div className="space-y-2">
+          <Field
+            label="தொடர்பு எண் (Verification phone number)"
+            required
+            hint="குறியீட்டைப் பெற பங்கு உங்களைத் தொடர்பு கொள்ள — the parish needs this to arrange handing your code over."
+          >
+            <TextInput
+              type="tel"
+              value={verificationPhone}
+              inputMode="tel"
+              autoComplete="off"
+              maxLength={10}
+              onChange={(e) => {
+                setVerificationPhone(e.target.value.replace(/[^0-9]/g, ""));
+                setRequestMessage(null);
+                setRequestError(null);
+              }}
+              placeholder="9876543210"
+            />
+          </Field>
+          <button
+            type="button"
+            disabled={requesting}
+            onClick={requestCode}
+            className="w-full py-2.5 rounded-lg border font-bold disabled:opacity-60"
+            style={{ borderColor: "#0D5C63", color: "#0D5C63" }}
+          >
+            {requesting ? "கோருகிறது… (requesting)" : "குறியீடு கேளுங்கள் (Request a code)"}
+          </button>
+          {requestMessage && (
+            <p className="text-sm rounded-lg px-3 py-2" style={{ backgroundColor: "#d1fae5", color: "#065f46" }}>
+              {requestMessage}
+            </p>
+          )}
+          {requestError && (
+            <p className="text-sm rounded-lg px-3 py-2" style={{ backgroundColor: "#fee2e2", color: "#991b1b" }}>
+              {requestError}
+            </p>
+          )}
+          <StaffContacts contacts={contacts} />
+        </div>
+
         <Field
           label="கடவுக் குறியீடு (Access code)"
           required
-          hint="அன்பிய தலைவரிடம் கேட்டுப் பெறுங்கள் — ask your Anbiyam head for this."
+          hint="அன்பிய தலைவரிடம் கேட்டுப் பெறுங்கள் — ask your Anbiyam head, or whoever issued it, for this."
         >
           {/* Digits only, so ask for the numeric keypad rather than a
               keyboard the reader then has to switch out of Tamil. `type` stays
@@ -189,7 +343,7 @@ function Identify({ onOpened }: { onOpened: (data: OpenedSitting) => void }) {
 
         <button
           type="submit"
-          disabled={busy || !parishId}
+          disabled={busy}
           className="w-full py-3 rounded-lg font-bold disabled:opacity-60"
           style={{ backgroundColor: "#F59E0B", color: "#0D5C63" }}
         >
@@ -197,6 +351,50 @@ function Identify({ onOpened }: { onOpened: (data: OpenedSitting) => void }) {
         </button>
       </form>
     </AuthCard>
+  );
+}
+
+/**
+ * Who to call about a requested code. Only groups with somebody in them are
+ * shown — an empty parish (no priest assigned yet, nobody with the
+ * self-service permission) renders nothing rather than three empty headings.
+ */
+function StaffContacts({ contacts }: { contacts: ParishStaffContacts | null }) {
+  if (!contacts) return null;
+  const { administrator, assistants, faculty } = contacts;
+  if (!administrator && assistants.length === 0 && faculty.length === 0) return null;
+
+  const row = (c: { name: string; phone: string | null }, i: number) => (
+    <p key={i} className="text-sm" style={{ color: "#0D5C63" }}>
+      {c.name}
+      {c.phone && <span style={{ color: "#596065" }}> — {c.phone}</span>}
+    </p>
+  );
+
+  return (
+    <div className="rounded-lg border p-3 space-y-3" style={{ borderColor: "#dce3e9" }}>
+      <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#0D5C63" }}>
+        பங்குத் தொடர்பு (Contact the parish)
+      </p>
+      {administrator && (
+        <div>
+          <p className="text-xs text-slate-500">பங்குத் தந்தை (Parish priest)</p>
+          {row(administrator, 0)}
+        </div>
+      )}
+      {assistants.length > 0 && (
+        <div>
+          <p className="text-xs text-slate-500">உதவி பங்குத் தந்தையர் (Assistant priests)</p>
+          {assistants.map(row)}
+        </div>
+      )}
+      {faculty.length > 0 && (
+        <div>
+          <p className="text-xs text-slate-500">உதவியாளர்கள் (Faculty)</p>
+          {faculty.map(row)}
+        </div>
+      )}
+    </div>
   );
 }
 

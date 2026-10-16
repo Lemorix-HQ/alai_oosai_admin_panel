@@ -4,8 +4,9 @@ import { cookies } from 'next/headers';
 import { deleteRequest, getRequest, postRequest } from '@/services/api';
 import { SITTING_COOKIE } from '@/src/session/cookie';
 import type {
-  AccessCodeStatus, HouseholdSnapshot, IssuedAccessCode, OpenedSitting,
-  RevokedAccessCode, SelfServiceParish, SubmitSittingPayload, SubmittedSitting,
+  AccessCodeRequest, AccessCodeStatus, HouseholdSnapshot, IssuedAccessCode, OpenedSitting,
+  ParishStaffContacts, ResolvedParish, RevokedAccessCode, SelfServiceParish,
+  SubmitSittingPayload, SubmittedSitting,
 } from '@/src/types';
 
 // ------------------------------------------------------------- access codes
@@ -29,6 +30,16 @@ export async function getAccessCodeStatusAction(familyId: string) {
 
 export async function revokeAccessCodeAction(familyId: string) {
   return deleteRequest<RevokedAccessCode>(`/families/${familyId}/access-code`);
+}
+
+/** The Code Issue Management screen's list — what a household's own request leaves for staff. */
+export async function listAccessCodeRequestsAction() {
+  return getRequest<undefined, AccessCodeRequest[]>('/access-code-requests');
+}
+
+/** Clears a stale or mistaken request without issuing a code. */
+export async function dismissAccessCodeRequestAction(id: string) {
+  return deleteRequest<{ dismissed: boolean }>(`/access-code-requests/${id}`);
 }
 
 // ------------------------------------------------ the household's own form
@@ -56,6 +67,49 @@ async function setSittingCookie(token: string, minutes: number) {
 export async function listSelfServiceParishesAction() {
   return getRequest<undefined, SelfServiceParish[]>(
     '/self-service/parishes', undefined, undefined, 'none',
+  );
+}
+
+/**
+ * Public: the one parish named by `?parish=<code>` on `/family-update` —
+ * what replaced the dropdown above. Never trusted as an id; the backend
+ * re-resolves it from the code itself.
+ */
+export async function resolveParishAction(code: string) {
+  return getRequest<{ code: string }, ResolvedParish>(
+    '/self-service/parish', { code }, undefined, 'none',
+  );
+}
+
+/**
+ * Public: who to contact for a code — the priest, any assistant priests, and
+ * the faculty who hold `family.access_code.manage` — shown next to the
+ * "Request a code" button so a household has somewhere to actually take
+ * that request.
+ */
+export async function getParishStaffContactsAction(code: string) {
+  return getRequest<{ code: string }, ParishStaffContacts>(
+    '/self-service/staff', { code }, undefined, 'none',
+  );
+}
+
+/**
+ * Public: a household with no code yet, asking for one. No sitting token —
+ * nothing is proved here but the family code, which is already enumerable
+ * and not treated as a secret elsewhere in this codebase.
+ *
+ * `phone` is where the parish can reach the household about this one
+ * request — stored only on the AccessCodeRequest row it was asked
+ * alongside, and cleared by the backend the moment that row is fulfilled or
+ * dismissed. See AccessCodeRequest.phone.
+ */
+export async function requestAccessCodeAction(input: {
+  parish_code: string;
+  family_code: string;
+  phone: string;
+}) {
+  return postRequest<typeof input, { family_code: string }>(
+    '/self-service/request-code', input, 'none',
   );
 }
 
